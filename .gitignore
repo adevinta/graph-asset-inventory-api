@@ -1,0 +1,8 @@
+# vim
+*.swp
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
