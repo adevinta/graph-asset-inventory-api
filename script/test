@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Exit on error and undefined variable.
+set -e -u
+
+# Set working directory to the root of the repo.
+cd "$(dirname $0)/.."
+
+# Run the docker-compose test environment.
+export PYTEST_FLAGS=$@
+docker-compose -f docker-compose-test.yml up \
+	--remove-orphans --build --exit-code-from inventory-api-test
