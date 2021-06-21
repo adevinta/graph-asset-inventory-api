@@ -7,4 +7,5 @@ set -e -u
 cd "$(dirname $0)/.."
 
 # Run the docker-compose local environment.
-docker-compose -f docker-compose-local.yml up --remove-orphans --build
+docker-compose -f docker-compose-local.yml -p graph-asset-inventory-api-local \
+	up --remove-orphans --build
