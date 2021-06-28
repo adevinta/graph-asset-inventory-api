@@ -12,6 +12,7 @@ services:
       - "8000:8000"
     volumes:
       - ./graph_asset_inventory_api:/app/graph_asset_inventory_api
+    restart: always
     depends_on:
       gremlin-server:
         condition: service_healthy
