@@ -17,4 +17,4 @@ COPY graph_asset_inventory_api graph_asset_inventory_api
 ENV PYTHONPATH=/app
 
 # Execute gunicorn as entry point.
-ENTRYPOINT ["gunicorn", "graph_asset_inventory_api.app:conn_app"]
+ENTRYPOINT ["gunicorn", "graph_asset_inventory_api.app:create_app()"]
