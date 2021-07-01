@@ -35,8 +35,19 @@ script/local
 This will expose two ports:
 
 - **8000**: Asset Inventory API
-- **8888**: Jupyter Notebook (it will request a token that can be obtained from
-  the docker-compose logs)
+- **8888**: Jupyter Notebook
+
+Jupyter Notebook can be accessed via:
+
+```
+http://localhost:8888/?token=<token>
+```
+
+The required token can be obtained from the docker-compose logs or executing:
+
+```
+docker exec graph-asset-inventory-api-local_graph-notebook_1 jupyter notebook list
+```
 
 The local development environmet supports hot realoading. This means that you
 can modify the code of the service and the changes will be automatically
