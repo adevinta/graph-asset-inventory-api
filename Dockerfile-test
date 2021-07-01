@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.9.6-alpine
 
 # Install system dependencies.
 RUN apk add gcc musl-dev
