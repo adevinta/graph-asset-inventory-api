@@ -1,3 +1,5 @@
+"""This module provides the Connexion App factory of the API."""
+
 import os
 import sys
 import logging
@@ -9,6 +11,8 @@ from graph_asset_inventory_api.context import close_inventory_client
 
 
 def config_logger():
+    """Configures the Flask logger."""
+
     flask_env = os.getenv('FLASK_ENV', 'development')
     log_level = logging.DEBUG if flask_env == 'development' else logging.INFO
 
@@ -35,6 +39,9 @@ def config_logger():
 
 
 def config_db(app):
+    """Configures the Graph DB. Reading the neptune endpoint from the
+    environment."""
+
     neptune_endpoint = os.getenv('NEPTUNE_ENDPOINT', None)
     if neptune_endpoint is None:
         raise 'missing env var NEPTUNE_ENDPOINT'
@@ -44,6 +51,8 @@ def config_db(app):
 
 
 def create_app():
+    """Returns a new Connection App."""
+
     # It is recommended to configure the logger as soon as possible (i.e.
     # before creating the application object).
     config_logger()

@@ -1,19 +1,25 @@
+"""Collection of types used by the ``inventory`` module."""
+
 from gremlin_python.process.traversal import T
 
 
 class InventoryException(Exception):
-    pass
+    """Represents a generic Asset Inventory error."""
 
 
 class NotFoundException(InventoryException):
-    pass
+    """It is returned when a specific entity could not be found in the
+    inventory."""
 
 
 class InconsistentStateException(InventoryException):
-    pass
+    """It is returned when a inconsistency is detected in the Asset Inventory
+    state."""
 
 
 class Team:
+    """Represents a Team."""
+
     def __init__(self, identifier, name):
         self.identifier = identifier
         self.name = name
@@ -31,6 +37,9 @@ class Team:
 
 
 class DbTeam(Team):
+    """Represents a ``Team`` in the context of the Security Graph. The main
+    difference with a ``Team`` is that a ``DbTeam`` has a vertex ID field."""
+
     def __init__(self, identifier, name, vid):
         super().__init__(identifier, name)
         self.vid = vid
@@ -47,6 +56,9 @@ class DbTeam(Team):
 
     @classmethod
     def from_vteam(cls, vteam):
+        """Creates a ``DbTeam`` from a team vertex. A team vertex is the object
+        returned by gremlin when using a ``elementMap`` step."""
+
         if str(vteam[T.label]) != 'Team':
             raise InventoryException('wrong vertex type')
 

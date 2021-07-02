@@ -1,4 +1,9 @@
+"""Collection of types used by the ``api`` module."""
+
+
 class TeamReq:
+    """Represents a team from the point of view of an API request."""
+
     def __init__(self, identifier, name):
         self.identifier = identifier
         self.name = name
@@ -16,6 +21,8 @@ class TeamReq:
 
 
 class TeamResp(TeamReq):
+    """Represents a team from the point of view of an API response."""
+
     def __init__(self, identifier, name, id_):
         super().__init__(identifier, name)
         self.id = id_
@@ -32,4 +39,5 @@ class TeamResp(TeamReq):
 
     @classmethod
     def from_dbteam(cls, dbteam):
+        """Creates a ``TeamResp`` from a ``DbTeam``."""
         return cls(dbteam.identifier, dbteam.name, dbteam.vid)
