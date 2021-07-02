@@ -13,7 +13,6 @@ from graph_asset_inventory_api.api.types import TeamResp
 
 def get_teams(page=None, size=None):
     """Request handler for the API endpoint ``/v1/teams``."""
-
     cli = get_inventory_client()
     teams = None
     if not page or not size:
@@ -26,7 +25,6 @@ def get_teams(page=None, size=None):
 
 def get_teams_id(id):  # pylint: disable=redefined-builtin
     """Request handler for the API endpoint ``/v1/teams/{id}``."""
-
     cli = get_inventory_client()
 
     team = None

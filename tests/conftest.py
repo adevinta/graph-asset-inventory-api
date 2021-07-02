@@ -18,7 +18,6 @@ from graph_asset_inventory_api.api.types import TeamResp
 
 def get_neptune_endpoint():
     """Returns the neptune endpoint got from the environment."""
-
     neptune_endpoint = os.getenv('NEPTUNE_ENDPOINT', None)
     if neptune_endpoint is None:
         raise 'missing env var NEPTUNE_ENDPOINT'
@@ -29,7 +28,6 @@ def get_neptune_endpoint():
 def g():
     """Returns the graph traversal source. It takes care of closing the gremlin
     connection after finishing the test."""
-
     conn = DriverRemoteConnection(get_neptune_endpoint(), 'g')
     g = traversal().withRemote(conn)
     yield g
@@ -40,7 +38,6 @@ def g():
 def cli():
     """Returns an ``InventoryClient``. It takes care of closing the client
     after finishing the test."""
-
     cli = InventoryClient(get_neptune_endpoint())
     yield cli
     cli.close()
@@ -50,7 +47,6 @@ def cli():
 def flask_cli():
     """Returns a flask test client. It takes care of closing the client after
     finishing the test."""
-
     conn_app = create_app()
     with conn_app.app.test_client() as flask_cli:
         yield flask_cli
@@ -61,7 +57,6 @@ def init_teams(g):
     """Creates an initial set of teams and yields a ``DbTeam`` list. These
     teams are deleted after finishing the test. They can be used to test the
     ``InventoryClient``."""
-
     init_teams = [
         ('identifier0', 'name0'),
         ('identifier1', 'name1'),
@@ -88,8 +83,7 @@ def init_teams(g):
 
 @pytest.fixture
 def init_api_teams(init_teams):
-    """Converts the ``DbTeams`` created by ``init_teams`` into a list of dicts
-    that can be used to test the responses of the API endpoints."""
-
+    """Converts the ``DbTeam`` list created by ``init_teams`` into a list of
+    dicts that can be used to test the responses of the API endpoints."""
     api_teams = [TeamResp.from_dbteam(t).__dict__ for t in init_teams]
     yield api_teams

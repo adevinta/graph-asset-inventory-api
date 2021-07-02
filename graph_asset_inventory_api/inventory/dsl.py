@@ -41,7 +41,6 @@ class InventoryTraversalSource(GraphTraversalSource):
     def add_team(self, team):
         """Create a new ``Team`` vertex. If the vertex already exists, its name
         property is updated."""
-
         return self \
             .team_identifier(team.identifier) \
             .fold() \

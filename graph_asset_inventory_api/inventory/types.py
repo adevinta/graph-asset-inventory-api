@@ -58,7 +58,6 @@ class DbTeam(Team):
     def from_vteam(cls, vteam):
         """Creates a ``DbTeam`` from a team vertex. A team vertex is the object
         returned by gremlin when using a ``elementMap`` step."""
-
         if str(vteam[T.label]) != 'Team':
             raise InventoryException('wrong vertex type')
 

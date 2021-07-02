@@ -28,17 +28,14 @@ class InventoryClient:
     def close(self):
         """Releases the resources being used by the client, for instance the
         graph connection."""
-
         self._conn.close()
 
     def g(self):
         """Returns the graph traversal source."""
-
         return self._g
 
     def teams(self):
         """Returns all the teams."""
-
         vteams = self._g.teams().elementMap().toList()
         teams = [DbTeam.from_vteam(vt) for vt in vteams]
         return teams
@@ -46,7 +43,6 @@ class InventoryClient:
     def teams_page(self, page_idx, size):
         """Returns the page of teams with index ``page_idx`` and size
         ``size``."""
-
         offset = page_idx * size
         vteams = self._g \
             .teams() \
@@ -60,7 +56,6 @@ class InventoryClient:
 
     def team(self, vid):
         """Returns the team with vertex ID ``vid``."""
-
         vteams = self._g \
             .team(vid) \
             .elementMap() \
@@ -75,7 +70,6 @@ class InventoryClient:
 
     def team_identifier(self, identifier):
         """Returns the team with identifier ``identifier``."""
-
         vteams = self._g \
             .team_identifier(identifier) \
             .elementMap() \
@@ -91,7 +85,6 @@ class InventoryClient:
     def add_team(self, team):
         """Create a new team. If the team already exists, its name is
         updated."""
-
         vteams = self._g.add_team(team).elementMap().toList()
 
         if len(vteams) == 0:
@@ -103,5 +96,4 @@ class InventoryClient:
 
     def drop_team(self, vid):
         """Deletes the team with vertex ID ``vid``."""
-
         self._g.team(vid).drop().iterate()
