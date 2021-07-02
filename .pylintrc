@@ -1,0 +1,7 @@
+[MESSAGES CONTROL]
+
+disable=duplicate-code
+
+[BASIC]
+
+good-names=i, j, k, v, g, id, _
