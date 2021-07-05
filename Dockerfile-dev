@@ -11,17 +11,5 @@ COPY requirements/requirements.txt requirements/requirements-dev.txt .
 RUN pip install -r requirements.txt -r requirements-dev.txt && \
 	rm -f requirements.txt requirements-dev.txt
 
-# Copy pylint configuration.
-COPY .pylintrc .
-
-# Copy service code.
-COPY graph_asset_inventory_api graph_asset_inventory_api
-
-# Copy tests.
-COPY tests tests
-
 # Set Python's class path
 ENV PYTHONPATH=/app
-
-# Execute pytest as entry point.
-ENTRYPOINT ["pytest"]

@@ -4,12 +4,15 @@ services:
   inventory-api-test:
     build:
       context: .
-      dockerfile: Dockerfile-test
-    env_file: env/test
-    command: "${PYTEST_FLAGS:-}"
+      dockerfile: Dockerfile-dev
+    env_file: env/dev
+    volumes:
+      - .:/app
     depends_on:
       gremlin-server:
         condition: service_healthy
+    entrypoint: "pytest"
+    command: "${PYTEST_FLAGS:-}"
 
   gremlin-server:
     image: tinkerpop/gremlin-server:3.5.0
