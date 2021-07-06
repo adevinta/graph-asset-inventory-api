@@ -7,6 +7,7 @@ from logging.config import dictConfig
 
 import connexion
 
+from graph_asset_inventory_api import EnvVarNotSetError
 from graph_asset_inventory_api.context import close_inventory_client
 
 
@@ -42,7 +43,7 @@ def config_db(app):
     environment."""
     neptune_endpoint = os.getenv('NEPTUNE_ENDPOINT', None)
     if neptune_endpoint is None:
-        raise 'missing env var NEPTUNE_ENDPOINT'
+        raise EnvVarNotSetError('NEPTUNE_ENDPOINT')
 
     app.config['NEPTUNE_ENDPOINT'] = neptune_endpoint
     app.teardown_appcontext(close_inventory_client)

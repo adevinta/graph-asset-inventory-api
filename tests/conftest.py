@@ -10,17 +10,18 @@ from gremlin_python.driver.driver_remote_connection import (
     DriverRemoteConnection,
 )
 
+from graph_asset_inventory_api import EnvVarNotSetError
 from graph_asset_inventory_api.factory import create_app
 from graph_asset_inventory_api.inventory.client import InventoryClient
-from graph_asset_inventory_api.inventory.types import DbTeam
-from graph_asset_inventory_api.api.types import TeamResp
+from graph_asset_inventory_api.inventory import DbTeam
+from graph_asset_inventory_api.api import TeamResp
 
 
 def get_neptune_endpoint():
     """Returns the neptune endpoint got from the environment."""
     neptune_endpoint = os.getenv('NEPTUNE_ENDPOINT', None)
     if neptune_endpoint is None:
-        raise 'missing env var NEPTUNE_ENDPOINT'
+        raise EnvVarNotSetError('NEPTUNE_ENDPOINT')
     return neptune_endpoint
 
 

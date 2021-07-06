@@ -7,11 +7,11 @@ from gremlin_python.driver.driver_remote_connection import (
     DriverRemoteConnection,
 )
 
-from graph_asset_inventory_api.inventory.types import (
+from graph_asset_inventory_api.inventory import (
     DbTeam,
-    InventoryException,
-    NotFoundException,
-    InconsistentStateException,
+    InventoryError,
+    NotFoundError,
+    InconsistentStateError,
 )
 from graph_asset_inventory_api.inventory.dsl import (
     InventoryTraversalSource,
@@ -62,9 +62,9 @@ class InventoryClient:
             .toList()
 
         if len(vteams) == 0:
-            raise NotFoundException
+            raise NotFoundError(vid)
         if len(vteams) > 1:
-            raise InconsistentStateException('duplicated team')
+            raise InconsistentStateError('duplicated team')
 
         return DbTeam.from_vteam(vteams[0])
 
@@ -76,9 +76,9 @@ class InventoryClient:
             .toList()
 
         if len(vteams) == 0:
-            raise NotFoundException
+            raise NotFoundError(identifier)
         if len(vteams) > 1:
-            raise InconsistentStateException('duplicated team')
+            raise InconsistentStateError('duplicated team')
 
         return DbTeam.from_vteam(vteams[0])
 
@@ -88,9 +88,9 @@ class InventoryClient:
         vteams = self._g.add_team(team).elementMap().toList()
 
         if len(vteams) == 0:
-            raise InventoryException('team was not created')
+            raise InventoryError('team was not created')
         if len(vteams) > 1:
-            raise InconsistentStateException('duplicated team')
+            raise InconsistentStateError('duplicated team')
 
         return DbTeam.from_vteam(vteams[0])
 

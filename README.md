@@ -69,6 +69,32 @@ instance, you can run a specific test with:
 script/test tests/test_foo.py::test_foo
 ```
 
+### Linters
+
+Similar to the local development environment and the test suite, linters are
+also run inside Docker via docker-compose. You can run the linters using the
+`/script/lint` script:
+
+```
+script/lint
+```
+
+This script will run both [flake8] and [pylint] against the
+`graph_asset_inventory_api` module and the test suite.
+
+## Environment Variables
+
+These are the required environment variables:
+
+| Variable | Description | Example |
+| --- | --- | --- |
+| `FLASK_ENV` | Environment. The value `development` enables debug. | `development` |
+| `PORT` | Listening port of the API. | `8000` |
+| `WEB_CONCURRENCY` | Number of gunicorn workers. | `4` |
+| `NEPTUNE_ENDPOINT` | Neptune's endpoint. | `ws://neptune-endpoint:8182/gremlin` |
+
+The directory `/env` in this repository contains some example configurations.
+
 ## Contributing
 
 **This project is in an early stage, we are not accepting external
@@ -78,3 +104,5 @@ To contribute, please read the contribution guidelines in [CONTRIBUTING.md].
 
 
 [CONTRIBUTING.md]: CONTRIBUTING.md
+[flake8]: https://flake8.pycqa.org/
+[pylint]: https://pylint.pycqa.org/

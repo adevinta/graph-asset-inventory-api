@@ -4,9 +4,9 @@ import pytest
 
 from helpers import compare_unsorted_list
 
-from graph_asset_inventory_api.inventory.types import (
+from graph_asset_inventory_api.inventory import (
     Team,
-    NotFoundException,
+    NotFoundError,
 )
 
 
@@ -39,7 +39,7 @@ def test_team(cli, init_teams):
 def test_team_not_found(cli):
     """Tests the method ``team`` of the class ``InventoryClient`` for the case
     of a non existent ``vid``."""
-    with pytest.raises(NotFoundException):
+    with pytest.raises(NotFoundError):
         cli.team(13371337)
 
 
@@ -53,7 +53,7 @@ def test_team_identifier(cli, init_teams):
 def test_team_identifier_not_found(cli):
     """Tests the method ``team_identifier`` of the class ``InventoryClient``
     for the case of a non existent identifier."""
-    with pytest.raises(NotFoundException):
+    with pytest.raises(NotFoundError):
         cli.team_identifier('identifier1337')
 
 
