@@ -39,8 +39,10 @@ def test_team(cli, init_teams):
 def test_team_not_found(cli):
     """Tests the method ``team`` of the class ``InventoryClient`` for the case
     of a non existent ``vid``."""
-    with pytest.raises(NotFoundError):
+    with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
         cli.team(13371337)
+
+    assert exc_info.value.name == 13371337
 
 
 def test_team_identifier(cli, init_teams):
@@ -53,8 +55,10 @@ def test_team_identifier(cli, init_teams):
 def test_team_identifier_not_found(cli):
     """Tests the method ``team_identifier`` of the class ``InventoryClient``
     for the case of a non existent identifier."""
-    with pytest.raises(NotFoundError):
+    with pytest.raises(NotFoundError, match='.*identifier1337.*') as exc_info:
         cli.team_identifier('identifier1337')
+
+    assert exc_info.value.name == 'identifier1337'
 
 
 def test_drop_team(cli, init_teams):
