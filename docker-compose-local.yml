@@ -4,17 +4,18 @@ services:
   inventory-api:
     build:
       context: .
-      dockerfile: Dockerfile
-    entrypoint: ["python", "graph_asset_inventory_api/app.py"]
-    command: []
-    env_file: env/local
+      dockerfile: Dockerfile-dev
+    env_file: env/dev
     ports:
       - "8000:8000"
     volumes:
-      - ./graph_asset_inventory_api:/app/graph_asset_inventory_api
+      - .:/app
+    restart: always
     depends_on:
       gremlin-server:
         condition: service_healthy
+    entrypoint: ["python"]
+    command: ["graph_asset_inventory_api/app.py"]
 
   graph-notebook:
     # TODO: Replace local image with a public one.

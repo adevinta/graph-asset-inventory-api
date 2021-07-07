@@ -1,0 +1,17 @@
+version: "3"
+
+services:
+  inventory-api-lint:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    env_file: env/dev
+    volumes:
+      - .:/app
+    entrypoint: ["/bin/sh"]
+    command: ["-c", " \
+      echo 'Running flake8...' && \
+      flake8 graph_asset_inventory_api tests && \
+      echo 'Running pylint...' && \
+      pylint graph_asset_inventory_api tests \
+    "]

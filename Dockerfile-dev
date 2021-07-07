@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.9.6-alpine
 
 # Install system dependencies.
 RUN apk add gcc musl-dev
@@ -11,14 +11,5 @@ COPY requirements/requirements.txt requirements/requirements-dev.txt .
 RUN pip install -r requirements.txt -r requirements-dev.txt && \
 	rm -f requirements.txt requirements-dev.txt
 
-# Copy service code.
-COPY graph_asset_inventory_api graph_asset_inventory_api
-
-# Copy tests.
-COPY tests tests
-
 # Set Python's class path
 ENV PYTHONPATH=/app
-
-# Execute pytest as entry point.
-ENTRYPOINT ["pytest"]

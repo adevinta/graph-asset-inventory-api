@@ -64,6 +64,7 @@ paths:
         required: true
 
     get:
+      operationId: graph_asset_inventory_api.api.teams.get_teams_id
       summary: Returns a team.
       tags:
         - Teams
