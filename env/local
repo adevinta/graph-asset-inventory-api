@@ -1,0 +1,8 @@
+# Set Flask environment. The value "development" enables debug.
+FLASK_ENV=development
+
+# Set Connexion listen port.
+PORT=8000
+
+# Neptune DB endpoint.
+NEPTUNE_ENDPOINT='ws://gremlin-server:8182/gremlin'

@@ -21,10 +21,49 @@ This layer hides the low-level details of the graph and implements the graph
 queries. Clients can then save and extract inventory data through this common
 interface without extra knowledge of vertices or edges.
 
+## Usage
+
+### Local development environment
+
+A local development environment is provided via docker-compose. You can launch
+it using the `/script/local` script:
+
+```
+script/local
+```
+
+This will expose two ports:
+
+- **8000**: Asset Inventory API
+- **8888**: Jupyter Notebook (it will request a token that can be obtained from
+  the docker-compose logs)
+
+The local development environmet supports hot realoading. This means that you
+can modify the code of the service and the changes will be automatically
+reloaded without relaunching the environment.
+
+### Test suite
+
+Tests are run inside Docker via docker-compose. You can run the test suite
+using the `/script/test` script:
+
+```
+script/test
+```
+
+The command line arguments passed to this script are passed to pytest. For
+instance, you can run a specific test with:
+
+```
+script/test tests/test_foo.py::test_foo
+```
+
 ## Contributing
 
 **This project is in an early stage, we are not accepting external
 contributions yet.**
 
-To contribute, please read the contribution guidelines in
-[CONTRIBUTING.md](CONTRIBUTING.md).
+To contribute, please read the contribution guidelines in [CONTRIBUTING.md].
+
+
+[CONTRIBUTING.md]: CONTRIBUTING.md

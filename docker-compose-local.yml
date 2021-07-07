@@ -1,0 +1,44 @@
+version: "3"
+
+services:
+  inventory-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    entrypoint: ["python", "graph_asset_inventory_api/app.py"]
+    command: []
+    env_file: env/local
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./graph_asset_inventory_api:/app/graph_asset_inventory_api
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+
+  graph-notebook:
+    # TODO: Replace local image with a public one.
+    # TODO: Modify graph-notebook to accept a port via env var. The env var
+    # "JUPYTER_PORT" was introduced in a version of Jupyter Notebook newer than
+    # the one used by graph-notebook.
+    image: graph-notebook:1.0.0
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./notebooks:/notebooks
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+
+  gremlin-server:
+    image: tinkerpop/gremlin-server:3.5.0
+    command: conf/gremlin-server.yaml
+    environment:
+      gremlinserver.channelizer: org.apache.tinkerpop.gremlin.server.channel.WsAndHttpChannelizer
+    expose:
+      - "8182"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "gremlin-server:8182"]
+      interval: 5s
+      timeout: 10s
+      retries: 6

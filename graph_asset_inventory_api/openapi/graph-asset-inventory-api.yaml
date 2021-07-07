@@ -7,6 +7,7 @@ info:
 paths:
   /v1/teams:
     get:
+      operationId: graph_asset_inventory_api.api.teams.get_teams
       summary: Returns the list of teams.
       tags:
         - Teams

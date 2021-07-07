@@ -1,0 +1,4 @@
+Flask==2.0.0
+connexion[swagger-ui]==2.7.0
+gunicorn==20.1.0
+gremlinpython==3.5.0

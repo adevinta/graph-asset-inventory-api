@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Exit on error and undefined variable.
+set -e -u
+
+# Set working directory to the root of the repo.
+cd "$(dirname $0)/.."
+
+# Run the docker-compose local environment.
+docker-compose -f docker-compose-local.yml -p graph-asset-inventory-api-local \
+	up --remove-orphans --build

@@ -1,0 +1,25 @@
+version: "3"
+
+services:
+  inventory-api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile-test
+    env_file: env/test
+    command: "${PYTEST_FLAGS:-}"
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+
+  gremlin-server:
+    image: tinkerpop/gremlin-server:3.5.0
+    command: conf/gremlin-server.yaml
+    environment:
+      gremlinserver.channelizer: org.apache.tinkerpop.gremlin.server.channel.WsAndHttpChannelizer
+    expose:
+      - "8182"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "gremlin-server:8182"]
+      interval: 5s
+      timeout: 10s
+      retries: 6
