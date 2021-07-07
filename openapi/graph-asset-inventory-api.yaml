@@ -1,0 +1,595 @@
+openapi: 3.0.3
+info:
+  title: graph-asset-inventory-api
+  description: Security Graph. Asset Inventory API.
+  version: 1.0.0
+
+paths:
+  /v1/teams:
+    get:
+      summary: Returns the list of teams.
+      tags:
+        - Teams
+        - v1
+      parameters:
+        - in: query
+          name: page
+          description: Index of the page.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: size
+          description: Number of results per page.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: A JSON array of teams.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamResp'
+
+    post:
+      summary: Creates a team.
+      tags:
+        - Teams
+        - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamReq'
+      responses:
+        '201':
+          description: A JSON object with the created team.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResp'
+
+  /v1/teams/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: ID of the team.
+        schema:
+          type: string
+          format: uuid
+        required: true
+
+    get:
+      summary: Returns a team.
+      tags:
+        - Teams
+        - v1
+      responses:
+        '200':
+          description: A JSON object with the team.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResp'
+        '404':
+          description: The team was not found.
+
+    put:
+      summary: Updates a team.
+      tags:
+        - Teams
+        - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TeamReq'
+      responses:
+        '200':
+          description: A JSON object with the updated team.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamResp'
+        '404':
+          description: The team was not found.
+
+    delete:
+      summary: Deletes a team.
+      tags:
+        - Teams
+        - v1
+      responses:
+        '204':
+          description: The team has been deleted successfully.
+        '404':
+          description: The team was not found.
+
+  /v1/assets:
+    get:
+      summary: Returns the list of assets.
+      tags:
+        - Assets
+        - v1
+      parameters:
+        - in: query
+          name: page
+          description: Index of the page.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: size
+          description: Number of results per page.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: A JSON array of assets.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AssetResp'
+
+    post:
+      summary: Creates an asset.
+      tags:
+        - Assets
+        - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AssetReq'
+                - type: object
+                  properties:
+                    timestamp:
+                      type: string
+                      format: date-time
+      responses:
+        '201':
+          description: A JSON object with the created asset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResp'
+
+  /v1/assets/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: ID of the asset.
+        schema:
+          type: string
+          format: uuid
+        required: true
+
+    get:
+      summary: Returns an asset.
+      tags:
+        - Assets
+        - v1
+      responses:
+        '200':
+          description: A JSON object with the asset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResp'
+        '404':
+          description: The asset was not found.
+
+    put:
+      summary: Updates an asset.
+      tags:
+        - Assets
+        - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AssetReq'
+                - type: object
+                  properties:
+                    timestamp:
+                      type: string
+                      format: date-time
+      responses:
+        '200':
+          description: A JSON object with the updated asset.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssetResp'
+        '404':
+          description: The asset was not found.
+
+    delete:
+      summary: Deletes an asset.
+      tags:
+        - Assets
+        - v1
+      responses:
+        '204':
+          description: The asset has been deleted successfully.
+        '404':
+          description: The asset was not found.
+
+  /v1/assets/{id}/parents:
+    parameters:
+      - in: path
+        name: id
+        description: ID of the asset.
+        schema:
+          type: string
+          format: uuid
+        required: true
+
+    get:
+      summary: Returns the list of child-of relationships of an asset.
+      tags:
+        - Assets
+        - v1
+      parameters:
+        - in: query
+          name: page
+          description: Index of the page.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: size
+          description: Number of results per page.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: A JSON array of relationships.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParentOfResp'
+        '404':
+          description: The asset was not found.
+
+    put:
+      summary: Adds a parent to an asset or updates an existing relationship.
+      tags:
+        - Assets
+        - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ParentOfReq'
+      responses:
+        '201':
+          description: A JSON object with the created or updated relationship.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ParentOfResp'
+        '404':
+          description: At least one of the assets do not exist.
+
+  /v1/assets/{child_id}/parents/{parent_id}:
+    parameters:
+      - in: path
+        name: child_id
+        description: ID of the child asset.
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: parent_id
+        description: ID of the parent asset.
+        schema:
+          type: string
+          format: uuid
+        required: true
+
+    delete:
+      summary: Deletes a child-of relationship.
+      tags:
+        - Assets
+        - v1
+      responses:
+        '204':
+          description: The relationship has been deleted successfully.
+        '404':
+          description: At least one of the assets or the relationship were not found.
+
+  /v1/assets/{id}/owners:
+    parameters:
+      - in: path
+        name: id
+        description: ID of the asset.
+        schema:
+          type: string
+          format: uuid
+        required: true
+
+    get:
+      summary: Returns the list of owned-by relationships of an asset.
+      tags:
+        - Assets
+        - Teams
+        - v1
+      parameters:
+        - in: query
+          name: page
+          description: Index of the page.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: size
+          description: Number of results per page.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: A JSON array of relationships.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OwnsResp'
+
+    put:
+      summary: Adds an owner to an asset or updates and existing relationship.
+      tags:
+        - Assets
+        - Teams
+        - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OwnsReq'
+      responses:
+        '201':
+          description: A JSON object with the created or updated relationship.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnsResp'
+        '404':
+          description: The asset or the team do not exist.
+
+  /v1/assets/{asset_id}/owners/{team_id}:
+    parameters:
+      - in: path
+        name: asset_id
+        description: ID of the asset.
+        schema:
+          type: string
+          format: uuid
+        required: true
+      - in: path
+        name: team_id
+        description: ID of the team.
+        schema:
+          type: string
+          format: uuid
+        required: true
+
+    delete:
+      summary: Deletes an owned-by relationship.
+      tags:
+        - Assets
+        - Teams
+        - v1
+      responses:
+        '204':
+          description: The relationship has been deleted successfully.
+        '404':
+          description: The asset, the team or the relationship were not found.
+
+  /v1/batch:
+    post:
+      summary: Creates multiple assets and their relationships.
+      tags:
+        - Assets
+        - Teams
+        - v1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: string
+                  format: date-time
+                assets:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/AssetReq'
+                      - type: object
+                        properties:
+                          parents:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/AssetTupleID'
+                          owners:
+                            type: array
+                            items:
+                              type: string
+                            description: An array of Team identifiers.
+      responses:
+        '204':
+          description: The assets and their relationships were successfully created.
+
+components:
+  schemas:
+    # Team
+    TeamReq:
+      type: object
+      properties:
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+        - identifier
+        - name
+
+    TeamResp:
+      allOf:
+        - $ref: '#/components/schemas/TeamReq'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+          required:
+            - id
+
+    # Asset
+    AssetTupleID:
+      type: object
+      properties:
+        identifier:
+          type: string
+        type:
+            type: string
+      required:
+        - identifier
+        - type
+
+    AssetReq:
+      allOf:
+        - $ref: '#/components/schemas/AssetTupleID'
+        - type: object
+          properties:
+            expiration:
+              type: string
+              format: date-time
+          required:
+            - expiration
+        - oneOf:
+            - $ref: '#/components/schemas/AWSAccount'
+            - $ref: '#/components/schemas/Hostname'
+          discriminator:
+            propertyName: type
+
+    AssetResp:
+      allOf:
+        - $ref: '#/components/schemas/AssetReq'
+        - type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            first_seen:
+              type: string
+              format: date-time
+            last_seen:
+              type: string
+              format: date-time
+          required:
+            - id
+            - first_seen
+            - last_seen
+
+    # Asset properties
+    AWSAccount:
+      type: object
+      properties:
+        enabled_aws_regions:
+          type: array
+          items:
+            type: string
+
+    Hostname:
+      type: object
+
+    # Relationships
+    ParentOfReq:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID of the parent.
+        timestamp:
+          type: string
+          format: date-time
+        expiration:
+          type: string
+          format: date-time
+      required:
+        - id
+        - expiration
+
+    ParentOfResp:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID of the parent.
+        first_seen:
+          type: string
+          format: date-time
+        last_seen:
+          type: string
+          format: date-time
+        expiration:
+          type: string
+          format: date-time
+      required:
+        - id
+        - first_seen
+        - last_seen
+        - expiration
+
+    OwnsReq:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID of the team.
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+      required:
+        - id
+        - start_time
+
+    OwnsResp:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID of the team.
+        start_time:
+          type: string
+          format: date-time
+        end_time:
+          type: string
+          format: date-time
+      required:
+        - id
+        - start_time
