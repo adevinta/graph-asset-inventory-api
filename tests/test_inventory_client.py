@@ -112,3 +112,12 @@ def test_add_team_conflict_error(cli, init_teams):
 
     assert compare_unsorted_list(
         cli.teams(), init_teams, lambda x: x.identifier)
+
+
+def test_injection(cli):
+    """Tests the method ``team_identifier`` of the class ``InventoryClient``
+    with potentially dangerous characters."""
+    with pytest.raises(NotFoundError) as exc_info:
+        cli.team_identifier('identifier1337"\'}{)(][.,;\r\n')
+
+    assert exc_info.value.name == 'identifier1337"\'}{)(][.,;\r\n'
