@@ -39,13 +39,29 @@ class InventoryTraversalSource(GraphTraversalSource):
         return self.V().is_team_identifier(identifier)
 
     def add_team(self, team):
-        """Create a new ``Team`` vertex. If the vertex already exists, its name
-        property is updated."""
+        """Create a new ``Team`` vertex."""
         return self \
             .team_identifier(team.identifier) \
             .fold() \
             .coalesce(
-                __.unfold(),
-                __.addV('Team').property('identifier', team.identifier),
-            ) \
-            .property('name', team.name)
+                # The team exists.
+                __.unfold()
+                .project('vertex', 'exists')
+                .by(__.identity().elementMap())
+                .by(__.constant(True)),
+                # The team does not exist.
+                __.addV('Team')
+                .property('identifier', team.identifier)
+                .property('name', team.name)
+                .project('vertex', 'exists')
+                .by(__.identity().elementMap())
+                .by(__.constant(False)),
+            )
+
+    def update_team(self, vid, team):
+        """Updates the ``Team`` vertex with id ``vid``."""
+        return self \
+            .team(vid) \
+            .property('identifier', team.identifier) \
+            .property('name', team.name) \
+            .elementMap()

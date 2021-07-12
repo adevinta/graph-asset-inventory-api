@@ -11,6 +11,7 @@ from graph_asset_inventory_api.inventory import (
     DbTeam,
     InventoryError,
     NotFoundError,
+    ConflictError,
     InconsistentStateError,
 )
 from graph_asset_inventory_api.inventory.dsl import (
@@ -34,28 +35,31 @@ class InventoryClient:
         """Returns the graph traversal source."""
         return self._g
 
-    def teams(self):
-        """Returns all the teams."""
-        vteams = self._g.teams().elementMap().toList()
-        teams = [DbTeam.from_vteam(vt) for vt in vteams]
-        return teams
+    def teams(self, page_idx=None, page_size=100):
+        """Returns all teams if ``page_idx`` is None. Otherwise it returns the
+        page of teams with index ``page_idx`` and size ``page_size``. By
+        default, the page size is 100 items."""
 
-    def teams_page(self, page_idx, size):
-        """Returns the page of teams with index ``page_idx`` and size
-        ``size``."""
-        offset = page_idx * size
         vteams = self._g \
-            .teams() \
-            .order() \
-            .by('identifier', Order.asc) \
-            .range(offset, offset + size) \
+            .teams()
+
+        if page_idx is not None:
+            offset = page_idx * page_size
+            vteams = vteams \
+                .order() \
+                .by('identifier', Order.asc) \
+                .range(offset, offset + page_size) \
+
+        vteams = vteams \
             .elementMap() \
             .toList()
+
         teams = [DbTeam.from_vteam(vt) for vt in vteams]
         return teams
 
     def team(self, vid):
-        """Returns the team with vertex ID ``vid``."""
+        """Returns the team with vertex ID ``vid``. If the team does not exist,
+        a ``NotFoundError`` exception is raised."""
         vteams = self._g \
             .team(vid) \
             .elementMap() \
@@ -69,7 +73,8 @@ class InventoryClient:
         return DbTeam.from_vteam(vteams[0])
 
     def team_identifier(self, identifier):
-        """Returns the team with identifier ``identifier``."""
+        """Returns the team with identifier ``identifier``. If the team does
+        not exist, a ``NotFoundError`` exception is raised."""
         vteams = self._g \
             .team_identifier(identifier) \
             .elementMap() \
@@ -83,17 +88,41 @@ class InventoryClient:
         return DbTeam.from_vteam(vteams[0])
 
     def add_team(self, team):
-        """Create a new team. If the team already exists, its name is
-        updated."""
-        vteams = self._g.add_team(team).elementMap().toList()
+        """Create a new team. If the team already exists, a ``ConflictError``
+        exception is raised."""
+        vteams = self._g.add_team(team).toList()
 
         if len(vteams) == 0:
             raise InventoryError('team was not created')
+        if len(vteams) > 1:
+            raise InconsistentStateError('duplicated team')
+        if vteams[0]['exists']:
+            raise ConflictError(team.identifier)
+
+        return DbTeam.from_vteam(vteams[0]['vertex'])
+
+    def update_team(self, vid, team):
+        """Updates the team with vertex ID ``vid``. If the team does not exist,
+        a ``NotFoundError`` exception is raised."""
+        vteams = self._g.update_team(vid, team).toList()
+
+        if len(vteams) == 0:
+            raise NotFoundError(vid)
         if len(vteams) > 1:
             raise InconsistentStateError('duplicated team')
 
         return DbTeam.from_vteam(vteams[0])
 
     def drop_team(self, vid):
-        """Deletes the team with vertex ID ``vid``."""
+        """Deletes the team with vertex ID ``vid``. If the team does not exist,
+        a ``NotFoundError`` exception is raised."""
+        vteams = self._g \
+            .team(vid) \
+            .toList()
+
+        if len(vteams) == 0:
+            raise NotFoundError(vid)
+        if len(vteams) > 1:
+            raise InconsistentStateError('duplicated team')
+
         self._g.team(vid).drop().iterate()

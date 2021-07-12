@@ -1,6 +1,6 @@
-# pylint: disable=redefined-outer-name
-
 """Fixtures shared across tests."""
+
+# pylint: disable=redefined-outer-name
 
 import os
 

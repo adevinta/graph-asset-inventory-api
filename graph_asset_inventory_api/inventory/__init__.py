@@ -21,6 +21,20 @@ class NotFoundError(InventoryError):
         self.name = name
 
 
+class ConflictError(InventoryError):
+    """It is returned when there is a conflict with the entity to be created.
+    For instance, when trying to create a Team with the same identifier."""
+
+    def __init__(self, name=None):
+        msg = 'conflict'
+        if name is not None:
+            msg = f'conflict: {name}'
+
+        super().__init__(msg)
+
+        self.name = name
+
+
 class InconsistentStateError(InventoryError):
     """It is returned when a inconsistency is detected in the Asset Inventory
     state."""

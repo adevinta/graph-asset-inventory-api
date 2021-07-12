@@ -36,6 +36,7 @@ paths:
                   $ref: '#/components/schemas/TeamResp'
 
     post:
+      operationId: graph_asset_inventory_api.api.teams.post_teams
       summary: Creates a team.
       tags:
         - Teams
@@ -80,6 +81,7 @@ paths:
           description: The team was not found.
 
     put:
+      operationId: graph_asset_inventory_api.api.teams.put_teams_id
       summary: Updates a team.
       tags:
         - Teams
@@ -100,6 +102,7 @@ paths:
           description: The team was not found.
 
     delete:
+      operationId: graph_asset_inventory_api.api.teams.delete_teams_id
       summary: Deletes a team.
       tags:
         - Teams

@@ -7,6 +7,7 @@ from helpers import compare_unsorted_list
 from graph_asset_inventory_api.inventory import (
     Team,
     NotFoundError,
+    ConflictError,
 )
 
 
@@ -16,18 +17,19 @@ def test_teams(cli, init_teams):
     assert compare_unsorted_list(teams, init_teams, lambda x: x.identifier)
 
 
-def test_teams_page(cli, init_teams):
-    """Tests the method ``teams_page`` of the class ``InventoryClient``."""
+def test_teams_pagination(cli, init_teams):
+    """Tests the pagination mode of the method ``teams`` of the class
+    ``InventoryClient``."""
     assert compare_unsorted_list(
-        cli.teams_page(1, 2), init_teams[2:4], lambda x: x.identifier)
+        cli.teams(1, 2), init_teams[2:4], lambda x: x.identifier)
     assert compare_unsorted_list(
-        cli.teams_page(0, 2), init_teams[0:2], lambda x: x.identifier)
+        cli.teams(0, 2), init_teams[0:2], lambda x: x.identifier)
     assert compare_unsorted_list(
-        cli.teams_page(2, 2), init_teams[4:5], lambda x: x.identifier)
+        cli.teams(2, 2), init_teams[4:5], lambda x: x.identifier)
     assert compare_unsorted_list(
-        cli.teams_page(1, 1), init_teams[1:2], lambda x: x.identifier)
+        cli.teams(1, 1), init_teams[1:2], lambda x: x.identifier)
     assert compare_unsorted_list(
-        cli.teams_page(0, 1000), init_teams, lambda x: x.identifier)
+        cli.teams(0, 1000), init_teams, lambda x: x.identifier)
 
 
 def test_team(cli, init_teams):
@@ -36,9 +38,9 @@ def test_team(cli, init_teams):
     assert team == init_teams[2]
 
 
-def test_team_not_found(cli):
-    """Tests the method ``team`` of the class ``InventoryClient`` for the case
-    of a non existent ``vid``."""
+def test_team_not_found_error(cli):
+    """Tests the method ``team`` of the class ``InventoryClient`` with an
+    unknown ``vid``."""
     with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
         cli.team(13371337)
 
@@ -52,9 +54,9 @@ def test_team_identifier(cli, init_teams):
     assert team == init_teams[2]
 
 
-def test_team_identifier_not_found(cli):
+def test_team_identifier_not_found_error(cli):
     """Tests the method ``team_identifier`` of the class ``InventoryClient``
-    for the case of a non existent identifier."""
+    with an unknown identifier."""
     with pytest.raises(NotFoundError, match='.*identifier1337.*') as exc_info:
         cli.team_identifier('identifier1337')
 
@@ -65,15 +67,18 @@ def test_drop_team(cli, init_teams):
     """Tests the method ``drop_team`` of the class ``InventoryClient``."""
     cli.drop_team(init_teams[2].vid)
 
-    filter_teams = init_teams[:2] + init_teams[3:]
+    final_teams = init_teams[:2] + init_teams[3:]
     assert compare_unsorted_list(
-        cli.teams(), filter_teams, lambda x: x.identifier)
+        cli.teams(), final_teams, lambda x: x.identifier)
 
 
-def test_drop_team_non_existent(cli, init_teams):
-    """Tests the method ``drop_team`` of the class ``InventoryClient`` for the
-    case of a non existent ``vid``."""
-    cli.drop_team(13371337)
+def test_drop_team_not_found_error(cli, init_teams):
+    """Tests the method ``drop_team`` of the class ``InventoryClient`` with an
+    unknown ``vid``."""
+    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
+        cli.drop_team(13371337)
+
+    assert exc_info.value.name == 13371337
 
     assert compare_unsorted_list(
         cli.teams(), init_teams, lambda x: x.identifier)
@@ -93,16 +98,17 @@ def test_add_team(cli, init_teams):
         cli.teams(), final_teams, lambda x: x.identifier)
 
 
-def test_add_team_existent(cli, init_teams):
-    """Tests the method ``add_team`` of the class ``InventoryClient`` for the
-    case of an already existent team."""
-    team = Team(init_teams[2].identifier, 'name_modified')
-    created_team = cli.add_team(team)
+def test_add_team_conflict_error(cli, init_teams):
+    """Tests the method ``add_team`` of the class ``InventoryClient`` with an
+    already existing team."""
+    identifier = init_teams[2].identifier
 
-    assert created_team.vid == init_teams[2].vid
-    assert created_team.identifier == init_teams[2].identifier
-    assert created_team.name == team.name
+    team = Team(identifier, 'new_name')
 
-    final_teams = init_teams[:2] + init_teams[3:] + [created_team]
+    with pytest.raises(ConflictError, match=f'.*{identifier}.*') as exc_info:
+        cli.add_team(team)
+
+    assert exc_info.value.name == identifier
+
     assert compare_unsorted_list(
-        cli.teams(), final_teams, lambda x: x.identifier)
+        cli.teams(), init_teams, lambda x: x.identifier)
