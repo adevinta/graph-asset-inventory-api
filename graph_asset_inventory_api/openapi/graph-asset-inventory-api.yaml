@@ -60,8 +60,7 @@ paths:
         name: id
         description: ID of the team.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
@@ -172,8 +171,7 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
@@ -234,8 +232,7 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
@@ -294,15 +291,13 @@ paths:
         name: child_id
         description: ID of the child asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
       - in: path
         name: parent_id
         description: ID of the parent asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     delete:
@@ -322,8 +317,7 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
@@ -382,15 +376,13 @@ paths:
         name: asset_id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
       - in: path
         name: team_id
         description: ID of the team.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     delete:
@@ -461,8 +453,7 @@ components:
         - type: object
           properties:
             id:
-              type: string
-              format: uuid
+              type: integer
           required:
             - id
 
@@ -488,11 +479,6 @@ components:
               format: date-time
           required:
             - expiration
-        - oneOf:
-            - $ref: '#/components/schemas/AWSAccount'
-            - $ref: '#/components/schemas/Hostname'
-          discriminator:
-            propertyName: type
 
     AssetResp:
       allOf:
@@ -500,8 +486,7 @@ components:
         - type: object
           properties:
             id:
-              type: string
-              format: uuid
+              type: integer
             first_seen:
               type: string
               format: date-time
@@ -513,25 +498,12 @@ components:
             - first_seen
             - last_seen
 
-    # Asset properties
-    AWSAccount:
-      type: object
-      properties:
-        enabled_aws_regions:
-          type: array
-          items:
-            type: string
-
-    Hostname:
-      type: object
-
     # Relationships
     ParentOfReq:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
+        parent_id:
+          type: integer
           description: ID of the parent.
         timestamp:
           type: string
@@ -540,15 +512,17 @@ components:
           type: string
           format: date-time
       required:
-        - id
+        - parent_id
         - expiration
 
     ParentOfResp:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
+          description: ID of the parent_of relationship.
+        parent_id:
+          type: integer
           description: ID of the parent.
         first_seen:
           type: string
@@ -561,6 +535,7 @@ components:
           format: date-time
       required:
         - id
+        - parent_id
         - first_seen
         - last_seen
         - expiration
@@ -569,8 +544,7 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
           description: ID of the team.
         start_time:
           type: string
@@ -586,8 +560,7 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
           description: ID of the team.
         start_time:
           type: string
