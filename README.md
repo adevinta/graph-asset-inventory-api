@@ -69,6 +69,12 @@ instance, you can run a specific test with:
 script/test tests/test_foo.py::test_foo
 ```
 
+A test coverage report can be generated with the flag `--cov`:
+
+```
+script/test --cov
+```
+
 ### Linters
 
 Similar to the local development environment and the test suite, linters are
