@@ -66,7 +66,11 @@ def create_app():
         specification_dir='openapi/',
         debug=debug,
     )
-    conn_app.add_api('graph-asset-inventory-api.yaml', resolver_error=501)
+    conn_app.add_api(
+        'graph-asset-inventory-api.yaml',
+        strict_validation=True,
+        resolver_error=501,
+    )
 
     config_db(conn_app.app, neptune_endpoint)
 
