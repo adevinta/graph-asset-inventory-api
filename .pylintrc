@@ -1,6 +1,6 @@
 [MESSAGES CONTROL]
 
-disable=duplicate-code
+disable=duplicate-code,too-many-public-methods
 
 [BASIC]
 
