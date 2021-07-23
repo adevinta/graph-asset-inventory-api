@@ -53,6 +53,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeamResp'
+        '409':
+          description: The team already exists.
 
   /v1/teams/{id}:
     parameters:
@@ -114,6 +116,7 @@ paths:
 
   /v1/assets:
     get:
+      operationId: graph_asset_inventory_api.api.assets.get_assets
       summary: Returns the list of assets.
       tags:
         - Assets
@@ -142,6 +145,7 @@ paths:
                   $ref: '#/components/schemas/AssetResp'
 
     post:
+      operationId: graph_asset_inventory_api.api.assets.post_assets
       summary: Creates an asset.
       tags:
         - Assets
@@ -164,6 +168,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetResp'
+        '409':
+          description: The asset already exists.
 
   /v1/assets/{id}:
     parameters:
@@ -175,6 +181,7 @@ paths:
         required: true
 
     get:
+      operationId: graph_asset_inventory_api.api.assets.get_assets_id
       summary: Returns an asset.
       tags:
         - Assets
@@ -190,6 +197,7 @@ paths:
           description: The asset was not found.
 
     put:
+      operationId: graph_asset_inventory_api.api.assets.put_assets_id
       summary: Updates an asset.
       tags:
         - Assets
@@ -216,6 +224,7 @@ paths:
           description: The asset was not found.
 
     delete:
+      operationId: graph_asset_inventory_api.api.assets.delete_assets_id
       summary: Deletes an asset.
       tags:
         - Assets
@@ -448,14 +457,18 @@ components:
         - name
 
     TeamResp:
-      allOf:
-        - $ref: '#/components/schemas/TeamReq'
-        - type: object
-          properties:
-            id:
-              type: integer
-          required:
-            - id
+      type: object
+      properties:
+        id:
+          type: integer
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - identifier
+        - name
 
     # Asset
     AssetTupleID:
@@ -474,6 +487,9 @@ components:
         - $ref: '#/components/schemas/AssetTupleID'
         - type: object
           properties:
+            timestamp:
+              type: string
+              format: date-time
             expiration:
               type: string
               format: date-time
@@ -482,7 +498,7 @@ components:
 
     AssetResp:
       allOf:
-        - $ref: '#/components/schemas/AssetReq'
+        - $ref: '#/components/schemas/AssetTupleID'
         - type: object
           properties:
             id:
@@ -493,10 +509,14 @@ components:
             last_seen:
               type: string
               format: date-time
+            expiration:
+              type: string
+              format: date-time
           required:
             - id
             - first_seen
             - last_seen
+            - expiration
 
     # Relationships
     ParentOfReq:

@@ -260,7 +260,7 @@ class DbParentOf(ParentOf):
 
     def __eq__(self, o):
         return super().__eq__(o) and self.eid == o.eid and \
-            self.eid == o.eid and self.time_attr == o.time_attr
+            self.time_attr == o.time_attr
 
     @classmethod
     def from_eparentof(cls, eparentof):
@@ -351,7 +351,7 @@ class DbOwns(Owns):
 
     def __eq__(self, o):
         return super().__eq__(o) and self.eid == o.eid and \
-            self.eid == o.eid and self.time_attr == o.time_attr
+            self.time_attr == o.time_attr
 
     @classmethod
     def from_eowns(cls, eowns):

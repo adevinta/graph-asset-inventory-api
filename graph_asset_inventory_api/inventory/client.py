@@ -4,7 +4,10 @@ the Asset Inventory."""
 from datetime import datetime
 
 from gremlin_python.process.anonymous_traversal import traversal
-from gremlin_python.process.traversal import Order
+from gremlin_python.process.traversal import (
+    T,
+    Order,
+)
 from gremlin_python.driver.driver_remote_connection import (
     DriverRemoteConnection,
 )
@@ -54,7 +57,7 @@ class InventoryClient:
             offset = page_idx * page_size
             vteams = vteams \
                 .order() \
-                .by('identifier', Order.asc) \
+                .by(T.id, Order.asc) \
                 .range(offset, offset + page_size)
 
         vteams = vteams \
@@ -148,8 +151,7 @@ class InventoryClient:
             offset = page_idx * page_size
             vassets = vassets \
                 .order() \
-                .by('type', Order.asc) \
-                .by('identifier', Order.asc) \
+                .by(T.id, Order.asc) \
                 .range(offset, offset + page_size)
 
         vassets = vassets \
@@ -209,6 +211,37 @@ class InventoryClient:
             raise ConflictError(asset.asset_id)
 
         return DbAsset.from_vasset(vassets[0]['vertex'])
+
+    def update_asset(self, vid, asset, expiration, timestamp=None):
+        """Updates an asset with the specified time attributes. If the asset
+        does not exist, a ``NotFoundError`` exception is raised. If the
+        timestamp is not provided, UTC now is used.
+
+        The time attributes are updated following these rules:
+
+        - If ``timestamp < first_seen``, then ``first_seen = timestamp``.
+        - If ``timestamp > last_seen``, then ``last_seen = timestamp`` and
+          ``expiration = expiration``.
+        - Otherwise, nothing is modified.
+
+        Thus, an asset can be immediately invalidated with
+        ``timestamp = expiration = now()``.
+        """
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+
+        if expiration < timestamp:
+            raise InventoryError('expiration before timestamp')
+
+        vassets = self._g.update_asset(
+            vid, asset, expiration, timestamp).toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(vid)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        return DbAsset.from_vasset(vassets[0])
 
     def set_asset(self, asset, expiration, timestamp=None):
         """Updates an asset with the specified time attributes. If the asset
@@ -283,7 +316,7 @@ class InventoryClient:
             offset = page_idx * page_size
             eparents = eparents \
                 .order() \
-                .by('last_seen', Order.desc) \
+                .by(T.id, Order.asc) \
                 .range(offset, offset + page_size)
 
         eparents = eparents \
@@ -393,7 +426,7 @@ class InventoryClient:
             offset = page_idx * page_size
             eowners = eowners \
                 .order() \
-                .by('end_time', Order.desc) \
+                .by(T.id, Order.asc) \
                 .range(offset, offset + page_size)
 
         eowners = eowners \
@@ -411,6 +444,8 @@ class InventoryClient:
 
         If the team or the asset do not exists, a ``NotFoundError`` exception
         is raised."""
+        # TODO(rm): end_time is optional.
+
         # Check that expiration is not before the timestamp.
         if end_time < start_time:
             raise InventoryError('start_time before end_time')

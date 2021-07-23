@@ -21,7 +21,10 @@ from graph_asset_inventory_api.inventory import (
     DbParentOf,
     DbOwns,
 )
-from graph_asset_inventory_api.api import TeamResp
+from graph_asset_inventory_api.api import (
+    TeamResp,
+    AssetResp,
+)
 
 
 def get_neptune_endpoint():
@@ -155,6 +158,14 @@ def init_assets(g):
 
     # Delete assets.
     g.V().drop().iterate()
+
+
+@pytest.fixture
+def init_api_assets(init_assets):
+    """Converts the ``DbAsset`` list created by ``init_assets`` into a list of
+    dicts that can be used to test the responses of the API endpoints."""
+    api_assets = [AssetResp.from_dbasset(t).__dict__ for t in init_assets]
+    yield api_assets
 
 
 # Parents.

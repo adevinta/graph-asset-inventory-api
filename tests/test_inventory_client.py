@@ -114,7 +114,7 @@ def test_update_team(cli, init_teams):
     assert compare_unsorted_list(cli.teams(), final_teams, lambda x: x.vid)
 
 
-def test_update_team_not_found_error(cli, init_teams):
+def test_update_team_vid_not_found_error(cli, init_teams):
     """Tests the method ``update_team`` of the class ``InventoryClient`` with
     an unknown ``vid``."""
     team = Team(init_teams[2].identifier, 'name_updated')
@@ -123,6 +123,20 @@ def test_update_team_not_found_error(cli, init_teams):
         cli.update_team(13371337, team)
 
     assert exc_info.value.name == 13371337
+
+    assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
+
+
+def test_update_team_identifier_not_found_error(cli, init_teams):
+    """Tests the method ``update_team`` of the class ``InventoryClient`` with
+    an unknown ``identifier``."""
+    vid = init_teams[2].vid
+    team = Team('identifier1337', 'name_updated')
+
+    with pytest.raises(NotFoundError, match=f'.*{vid}.*') as exc_info:
+        cli.update_team(vid, team)
+
+    assert exc_info.value.name == vid
 
     assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
 
@@ -257,6 +271,94 @@ def test_add_asset_conflict_error(cli, init_assets):
         cli.add_asset(asset, expiration, timestamp)
 
     assert exc_info.value.name == asset_id
+
+    assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
+
+
+def test_update_asset_future_timestamp(cli, init_assets):
+    """Tests the method ``update_asset`` of the class ``InventoryClient``."""
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+
+    updated_asset = cli.update_asset(
+        init_assets[2].vid, init_assets[2], expiration, timestamp)
+
+    assert updated_asset.vid == init_assets[2].vid
+    assert updated_asset.asset_id == init_assets[2].asset_id
+    assert updated_asset.time_attr.first_seen == \
+        init_assets[2].time_attr.first_seen
+    assert updated_asset.time_attr.last_seen == timestamp
+    assert updated_asset.time_attr.expiration == expiration
+
+    final_assets = init_assets[:2] + init_assets[3:] + [updated_asset]
+    assert compare_unsorted_list(cli.assets(), final_assets, lambda x: x.vid)
+
+
+def test_update_asset_past_timestamp(cli, init_assets):
+    """Tests the method ``update_asset`` of the class ``InventoryClient``."""
+    timestamp = datetime.fromisoformat('2000-01-01T01:00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+
+    updated_asset = cli.update_asset(
+        init_assets[2].vid, init_assets[2], expiration, timestamp)
+
+    assert updated_asset.vid == init_assets[2].vid
+    assert updated_asset.asset_id == init_assets[2].asset_id
+    assert updated_asset.time_attr.first_seen == timestamp
+    assert updated_asset.time_attr.last_seen == \
+        init_assets[2].time_attr.last_seen
+    assert updated_asset.time_attr.expiration == \
+        init_assets[2].time_attr.expiration
+
+    final_assets = init_assets[:2] + init_assets[3:] + [updated_asset]
+    assert compare_unsorted_list(cli.assets(), final_assets, lambda x: x.vid)
+
+
+def test_update_asset_in_between_timestamp(cli, init_assets):
+    """Tests the method ``update_asset`` of the class ``InventoryClient``."""
+    timestamp = datetime.fromisoformat('2021-07-04T01:00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+
+    updated_asset = cli.update_asset(
+        init_assets[2].vid, init_assets[2], expiration, timestamp)
+
+    assert updated_asset.vid == init_assets[2].vid
+    assert updated_asset.asset_id == init_assets[2].asset_id
+    assert updated_asset.time_attr == init_assets[2].time_attr
+
+    assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
+
+
+def test_update_asset_vid_not_found_error(cli, init_assets):
+    """Tests the method ``update_asset`` of the class ``InventoryClient`` with
+    an unknown ``vid``."""
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+
+    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
+        cli.update_asset(13371337, init_assets[2], expiration, timestamp)
+
+    assert exc_info.value.name == 13371337
+
+    assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
+
+
+def test_update_asset_asset_id_not_found_error(cli, init_assets):
+    """Tests the method ``update_asset`` of the class ``InventoryClient`` with
+    an unknown ``asset_id``."""
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+
+    asset_id = AssetID(init_assets[2].asset_id.type, 'identifier1337')
+    asset = Asset(asset_id)
+
+    with pytest.raises(
+        NotFoundError,
+        match=f'.*{init_assets[2].vid}.*',
+    ) as exc_info:
+        cli.update_asset(init_assets[2].vid, asset, expiration, timestamp)
+
+    assert exc_info.value.name == init_assets[2].vid
 
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
 

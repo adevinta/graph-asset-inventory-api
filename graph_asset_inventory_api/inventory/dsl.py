@@ -93,7 +93,7 @@ class InventoryTraversalSource(GraphTraversalSource):
         """Updates the ``Team`` vertex with id ``vid``."""
         return self \
             .team(vid) \
-            .property('identifier', team.identifier) \
+            .is_team_identifier(team.identifier) \
             .property('name', team.name) \
             .elementMap()
 
@@ -135,6 +135,31 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(False)),
             )
 
+    def update_asset(self, vid, asset, expiration, timestamp):
+        """Updates an ``Asset`` vertex with the specified time attributes.
+
+        The time attributes are updated following these rules:
+
+        - If ``timestamp < first_seen``, then ``first_seen = timestamp``.
+        - If ``timestamp > last_seen``, then ``last_seen = timestamp`` and
+          ``expiration = expiration``.
+        - Otherwise, nothing is modified."""
+        return self \
+            .asset(vid) \
+            .is_asset_id(asset.asset_id) \
+            .choose(
+                __.values('first_seen').is_(P.gt(timestamp)),
+                __.property('first_seen', timestamp),
+                __.identity(),
+            ) \
+            .choose(
+                __.values('last_seen').is_(P.lt(timestamp)),
+                __.property('last_seen', timestamp)
+                  .property('expiration', expiration),
+                __.identity(),
+            ) \
+            .elementMap()
+
     def set_asset(self, asset, expiration, timestamp):
         """Updates an ``Asset`` vertex with the specified time attributes. If
         the vertex does not exist, it is created.
@@ -158,7 +183,7 @@ class InventoryTraversalSource(GraphTraversalSource):
                 )
                 .choose(
                     __.values('last_seen').is_(P.lt(timestamp)),
-                    __.property('last_seen', timestamp) \
+                    __.property('last_seen', timestamp)
                       .property('expiration', expiration),
                     __.identity(),
                 )
