@@ -24,6 +24,7 @@ from graph_asset_inventory_api.inventory import (
 from graph_asset_inventory_api.api import (
     TeamResp,
     AssetResp,
+    ParentOfResp,
 )
 
 
@@ -294,6 +295,19 @@ def init_parents(g, init_assets):
             dbparents[child_vid].append(DbParentOf.from_eparentof(eparentof))
 
     yield dbparents
+
+
+@pytest.fixture
+def init_api_parents(init_parents):
+    """Converts the ``DbParentOf`` lists created by ``init_parents`` into lists
+    of dicts that can be used to test the responses of the API endpoints."""
+    api_parents = {}
+    for k, v in init_parents.items():
+        api_parents[k] = [
+            ParentOfResp.from_dbparentof(po).__dict__ for po in v
+        ]
+
+    yield api_parents
 
 
 # Owners.
