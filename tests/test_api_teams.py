@@ -23,6 +23,14 @@ def test_get_teams_pagination(flask_cli, init_api_teams):
         data, init_api_teams[2:4], lambda x: x['id'])
 
 
+def test_get_teams_pagination_missing_size(flask_cli, init_api_teams):
+    """Tests the API endpoint ``GET /v1/teams`` with pagination when the size
+    parameter is not specified."""
+    resp = flask_cli.get('/v1/teams?page=0')
+    data = json.loads(resp.data)
+    assert compare_unsorted_list(data, init_api_teams, lambda x: x['id'])
+
+
 def test_post_teams(flask_cli, init_api_teams):
     """Tests the API endpoint ``POST /v1/teams``."""
     team_req = TeamReq('new_identifier', 'new_name')

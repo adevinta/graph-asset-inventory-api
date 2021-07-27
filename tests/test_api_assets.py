@@ -29,6 +29,17 @@ def test_get_assets_pagination(flask_cli, init_api_assets):
     assert compare_unsorted_list(data, init_api_assets[2:4], lambda x: x['id'])
 
 
+def test_get_assets_pagination_missing_size(flask_cli, init_api_assets):
+    """Tests the API endpoint ``GET /v1/assets`` with pagination when the size
+    parameter is not specified."""
+    resp = flask_cli.get('/v1/assets?page=0')
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+    assert compare_unsorted_list(data, init_api_assets, lambda x: x['id'])
+
+
 def test_post_assets(flask_cli, init_api_assets):
     """Tests the API endpoint ``POST /v1/assets``."""
     asset_id = AssetID('new_type', 'new_identifier')

@@ -13,7 +13,7 @@ from graph_asset_inventory_api.api import (
 )
 
 
-def get_teams(page=None, size=None):
+def get_teams(page=None, size=100):
     """Request handler for the API endpoint ``GET /v1/teams``."""
     cli = get_inventory_client()
 

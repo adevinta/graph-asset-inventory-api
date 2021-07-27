@@ -16,7 +16,7 @@ from graph_asset_inventory_api.api import (
 )
 
 
-def get_assets(page=None, size=None):
+def get_assets(page=None, size=100):
     """Request handler for the API endpoint ``GET /v1/assets``."""
     cli = get_inventory_client()
 
