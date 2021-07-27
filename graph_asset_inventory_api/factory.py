@@ -47,9 +47,7 @@ def config_db(app, neptune_endpoint):
 def create_app():
     """Returns a new Connection App."""
     # Get flask environment.
-    flask_env = os.getenv('FLASK_ENV', None)
-    if flask_env is None:
-        raise EnvVarNotSetError('FLASK_ENV')
+    flask_env = os.getenv('FLASK_ENV', 'production')
     debug = (flask_env == 'development')
 
     # Get Neptune endpoint.
