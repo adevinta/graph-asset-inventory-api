@@ -1,6 +1,9 @@
 """Provides primitives to interact with an asset inventory."""
 
-from datetime import datetime
+from datetime import (
+    datetime,
+    timezone,
+)
 
 from gremlin_python.process.traversal import (
     T,
@@ -211,9 +214,9 @@ class DbAsset(Asset):
         vid = vteam[T.id]
         asset_id = AssetID(vteam['type'], vteam['identifier'])
 
-        first_seen = vteam['first_seen']
-        last_seen = vteam['last_seen']
-        expiration = vteam['expiration']
+        first_seen = vteam['first_seen'].replace(tzinfo=timezone.utc)
+        last_seen = vteam['last_seen'].replace(tzinfo=timezone.utc)
+        expiration = vteam['expiration'].replace(tzinfo=timezone.utc)
         time_attr = AssetTimeAttr(first_seen, last_seen, expiration)
 
         return cls(asset_id, vid, time_attr)
@@ -281,9 +284,9 @@ class DbParentOf(ParentOf):
         parent_vid = eparentof[Direction.OUT][T.id]
         child_vid = eparentof[Direction.IN][T.id]
 
-        first_seen = eparentof['first_seen']
-        last_seen = eparentof['last_seen']
-        expiration = eparentof['expiration']
+        first_seen = eparentof['first_seen'].replace(tzinfo=timezone.utc)
+        last_seen = eparentof['last_seen'].replace(tzinfo=timezone.utc)
+        expiration = eparentof['expiration'].replace(tzinfo=timezone.utc)
         time_attr = AssetTimeAttr(first_seen, last_seen, expiration)
 
         return cls(parent_vid, child_vid, eid, time_attr)
@@ -369,8 +372,8 @@ class DbOwns(Owns):
         team_vid = eowns[Direction.OUT][T.id]
         asset_vid = eowns[Direction.IN][T.id]
 
-        start_time = eowns['start_time']
-        end_time = eowns['end_time']
+        start_time = eowns['start_time'].replace(tzinfo=timezone.utc)
+        end_time = eowns['end_time'].replace(tzinfo=timezone.utc)
         time_attr = TeamTimeAttr(start_time, end_time)
 
         return cls(team_vid, asset_vid, eid, time_attr)

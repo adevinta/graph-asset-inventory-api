@@ -38,29 +38,46 @@ def get_neptune_endpoint():
 @pytest.fixture
 def g():
     """Returns the graph traversal source. It takes care of closing the gremlin
-    connection after finishing the test."""
+    connection after finishing the test. All vertices and edges are deleted on
+    the teardown stage of this fixture."""
     conn = DriverRemoteConnection(get_neptune_endpoint(), 'g')
     g = traversal().withRemote(conn)
+
     yield g
+
+    g.E().drop().iterate()
+    g.V().drop().iterate()
+
     conn.close()
 
 
 @pytest.fixture
-def cli():
+def cli(g):
     """Returns an ``InventoryClient``. It takes care of closing the client
-    after finishing the test."""
+    after finishing the test. All vertices and edges are deleted on
+    the teardown stage of this fixture."""
     cli = InventoryClient(get_neptune_endpoint())
+
     yield cli
+
     cli.close()
+
+    g.E().drop().iterate()
+    g.V().drop().iterate()
 
 
 @pytest.fixture
-def flask_cli():
+def flask_cli(g):
     """Returns a flask test client. It takes care of closing the client after
-    finishing the test."""
+    finishing the test. All vertices and edges are deleted on the teardown
+    stage of this fixture."""
     conn_app = create_app()
+
     with conn_app.app.test_client() as flask_cli:
         yield flask_cli
+
+    g.E().drop().iterate()
+    g.V().drop().iterate()
 
 
 # Teams.
@@ -68,9 +85,8 @@ def flask_cli():
 
 @pytest.fixture
 def init_teams(g):
-    """Creates an initial set of teams and yields a ``DbTeam`` list. These
-    teams are deleted after finishing the test. They can be used to test the
-    ``InventoryClient``."""
+    """Creates an initial set of teams and yields a ``DbTeam`` list. They can
+    be used to test the ``InventoryClient``."""
     init_teams = [
         ('identifier0', 'name0'),
         ('identifier1', 'name1'),
@@ -91,9 +107,6 @@ def init_teams(g):
 
     yield created_teams
 
-    # Delete teams.
-    g.V().drop().iterate()
-
 
 @pytest.fixture
 def init_api_teams(init_teams):
@@ -108,32 +121,67 @@ def init_api_teams(init_teams):
 
 @pytest.fixture
 def init_assets(g):
-    """Creates an initial set of assets and yields a ``DbAsset`` list. These
-    assets are deleted after finishing the test. They can be used to test the
-    ``InventoryClient``."""
+    """Creates an initial set of assets and yields a ``DbAsset`` list.  They
+    can be used to test the ``InventoryClient``."""
     # (type, identifier, first_seen, last_seen, expiration)
     assets = [
-        ('type0', 'identifier0', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
-        ('type0', 'identifier1', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
+        (
+            'type0', 'identifier0',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
+        (
+            'type0', 'identifier1',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
 
-        ('type1', 'identifier0', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
-        ('type1', 'identifier1', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
-        ('type1', 'identifier2', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
-        ('type1', 'identifier3', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
+        (
+            'type1', 'identifier0',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
+        (
+            'type1', 'identifier1',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
+        (
+            'type1', 'identifier2',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
+        (
+            'type1', 'identifier3',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
 
-        ('type2', 'identifier0', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
-        ('type2', 'identifier1', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
+        (
+            'type2', 'identifier0',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
+        (
+            'type2', 'identifier1',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
 
-        ('type3', 'identifier0', '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-            '2021-07-14T01:00:00'),
+        (
+            'type3', 'identifier0',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
     ]
 
     # Add assets.
@@ -156,9 +204,6 @@ def init_assets(g):
 
     yield created_assets
 
-    # Delete assets.
-    g.V().drop().iterate()
-
 
 @pytest.fixture
 def init_api_assets(init_assets):
@@ -174,28 +219,55 @@ def init_api_assets(init_assets):
 @pytest.fixture
 def init_parents(g, init_assets):
     """Creates an initial set of ``parent_of`` edges and yields a dict of the
-    form ``{vid0: [DbParentOf], vid1: [DbParentOf]}``. The edges are deleted
-    after finishing the test. They can be used to test the
-    ``InventoryClient``."""
+    form ``{vid0: [DbParentOf], vid1: [DbParentOf]}``.  They can be used to
+    test the ``InventoryClient``."""
     edges = {
         # child_idx: [(parent_idx, first_seen, last_seen, expiration)]
         0: [
-            (2, '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-                '2021-07-14T01:00:00'),
-            (3, '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-                '2021-07-14T01:00:00'),
-            (4, '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-                '2021-07-14T01:00:00'),
-            (5, '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-                '2021-07-14T01:00:00'),
+            (
+                2,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                3,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                4,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                5,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
         ],
         1: [
-            (6, '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-                '2021-07-14T01:00:00'),
-            (7, '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-                '2021-07-14T01:00:00'),
-            (8, '2021-07-01T01:00:00', '2021-07-07T01:00:00',
-                '2021-07-14T01:00:00'),
+            (
+                6,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                7,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                8,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
         ],
         2: [],
     }
@@ -223,9 +295,6 @@ def init_parents(g, init_assets):
 
     yield dbparents
 
-    # Delete edges.
-    g.E().drop().iterate()
-
 
 # Owners.
 
@@ -233,17 +302,17 @@ def init_parents(g, init_assets):
 @pytest.fixture
 def init_owners(g, init_teams, init_assets):
     """Creates an initial set of ``owns`` edges and yields a dict of the form
-    ``{vid0: [DbOwns], vid1: [DbOwns]}``. The edges are deleted after finishing
-    the test. They can be used to test the ``InventoryClient``."""
+    ``{vid0: [DbOwns], vid1: [DbOwns]}``. They can be used to test the
+    ``InventoryClient``."""
     edges = {
         # asset_idx: [(asset_idx, start_time, end_time)]
         0: [
-            (1, '2021-07-01T01:00:00', '2021-07-07T01:00:00'),
-            (2, '2021-07-01T01:00:00', '2021-07-07T01:00:00'),
-            (3, '2021-07-01T01:00:00', '2021-07-07T01:00:00'),
+            (1, '2021-07-01T01:00:00+00:00', '2021-07-07T01:00:00+00:00'),
+            (2, '2021-07-01T01:00:00+00:00', '2021-07-07T01:00:00+00:00'),
+            (3, '2021-07-01T01:00:00+00:00', '2021-07-07T01:00:00+00:00'),
         ],
         1: [
-            (4, '2021-07-01T01:00:00', '2021-07-07T01:00:00'),
+            (4, '2021-07-01T01:00:00+00:00', '2021-07-07T01:00:00+00:00'),
         ],
         2: [],
     }
@@ -268,6 +337,3 @@ def init_owners(g, init_teams, init_assets):
             dbowners[asset_vid].append(DbOwns.from_eowns(eowns))
 
     yield dbowners
-
-    # Delete edges.
-    g.E().drop().iterate()

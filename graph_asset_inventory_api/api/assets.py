@@ -1,7 +1,7 @@
 """This module implements the request handlers for the endpoints of the Asset
 Inventory API related to asset operations."""
 
-from datetime import datetime
+import dateutil.parser
 
 from graph_asset_inventory_api.context import get_inventory_client
 from graph_asset_inventory_api.inventory import (
@@ -31,10 +31,10 @@ def post_assets(body):
     cli = get_inventory_client()
 
     asset = Asset(AssetID(body['type'], body['identifier']))
-    expiration = datetime.fromisoformat(body['expiration'])
+    expiration = dateutil.parser.isoparse(body['expiration'])
     timestamp = None
     if 'timestamp' in body:
-        timestamp = datetime.fromisoformat(body['timestamp'])
+        timestamp = dateutil.parser.isoparse(body['timestamp'])
 
     created_asset = None
     try:
@@ -77,10 +77,10 @@ def put_assets_id(id, body):  # pylint: disable=redefined-builtin
     cli = get_inventory_client()
 
     asset = Asset(AssetID(body['type'], body['identifier']))
-    expiration = datetime.fromisoformat(body['expiration'])
+    expiration = dateutil.parser.isoparse(body['expiration'])
     timestamp = None
     if 'timestamp' in body:
-        timestamp = datetime.fromisoformat(body['timestamp'])
+        timestamp = dateutil.parser.isoparse(body['timestamp'])
 
     updated_asset = None
     try:

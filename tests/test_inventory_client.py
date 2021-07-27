@@ -242,8 +242,8 @@ def test_add_asset(cli, init_assets):
     asset_id = AssetID('type_created', 'identifier_created')
     asset = Asset(asset_id)
 
-    timestamp = datetime.fromisoformat('2022-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     created_asset = cli.add_asset(asset, expiration, timestamp)
 
@@ -264,8 +264,8 @@ def test_add_asset_conflict_error(cli, init_assets):
     asset_id = init_assets[2].asset_id
     asset = Asset(asset_id)
 
-    timestamp = datetime.fromisoformat('2022-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     with pytest.raises(ConflictError, match=f'.*{asset_id}.*') as exc_info:
         cli.add_asset(asset, expiration, timestamp)
@@ -277,8 +277,8 @@ def test_add_asset_conflict_error(cli, init_assets):
 
 def test_update_asset_future_timestamp(cli, init_assets):
     """Tests the method ``update_asset`` of the class ``InventoryClient``."""
-    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     updated_asset = cli.update_asset(
         init_assets[2].vid, init_assets[2], expiration, timestamp)
@@ -296,8 +296,8 @@ def test_update_asset_future_timestamp(cli, init_assets):
 
 def test_update_asset_past_timestamp(cli, init_assets):
     """Tests the method ``update_asset`` of the class ``InventoryClient``."""
-    timestamp = datetime.fromisoformat('2000-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2000-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     updated_asset = cli.update_asset(
         init_assets[2].vid, init_assets[2], expiration, timestamp)
@@ -316,8 +316,8 @@ def test_update_asset_past_timestamp(cli, init_assets):
 
 def test_update_asset_in_between_timestamp(cli, init_assets):
     """Tests the method ``update_asset`` of the class ``InventoryClient``."""
-    timestamp = datetime.fromisoformat('2021-07-04T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2021-07-04T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     updated_asset = cli.update_asset(
         init_assets[2].vid, init_assets[2], expiration, timestamp)
@@ -332,8 +332,8 @@ def test_update_asset_in_between_timestamp(cli, init_assets):
 def test_update_asset_vid_not_found_error(cli, init_assets):
     """Tests the method ``update_asset`` of the class ``InventoryClient`` with
     an unknown ``vid``."""
-    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
         cli.update_asset(13371337, init_assets[2], expiration, timestamp)
@@ -346,8 +346,8 @@ def test_update_asset_vid_not_found_error(cli, init_assets):
 def test_update_asset_asset_id_not_found_error(cli, init_assets):
     """Tests the method ``update_asset`` of the class ``InventoryClient`` with
     an unknown ``asset_id``."""
-    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     asset_id = AssetID(init_assets[2].asset_id.type, 'identifier1337')
     asset = Asset(asset_id)
@@ -368,8 +368,8 @@ def test_set_asset(cli, init_assets):
     asset_id = AssetID('type_created', 'identifier_created')
     asset = Asset(asset_id)
 
-    timestamp = datetime.fromisoformat('2022-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     (updated_asset, exists) = cli.set_asset(asset, expiration, timestamp)
 
@@ -391,8 +391,8 @@ def test_set_asset_update_past_timestamp(cli, init_assets):
     asset_id = init_assets[2].asset_id
     asset = Asset(asset_id)
 
-    timestamp = datetime.fromisoformat('2000-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2000-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     (updated_asset, exists) = cli.set_asset(asset, expiration, timestamp)
 
@@ -416,8 +416,8 @@ def test_set_asset_update_future_timestamp(cli, init_assets):
     asset_id = init_assets[2].asset_id
     asset = Asset(asset_id)
 
-    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     (updated_asset, exists) = cli.set_asset(asset, expiration, timestamp)
 
@@ -440,8 +440,8 @@ def test_set_asset_update_in_between_timestamp(cli, init_assets):
     asset_id = init_assets[2].asset_id
     asset = Asset(asset_id)
 
-    timestamp = datetime.fromisoformat('2021-07-04T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2021-07-04T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     (updated_asset, exists) = cli.set_asset(asset, expiration, timestamp)
 
@@ -500,8 +500,8 @@ def test_set_parent_of(cli, init_parents, init_assets):
 
     parentof = ParentOf(parent_vid, vid)
 
-    timestamp = datetime.fromisoformat('2022-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     (updated_parentof, exists) = cli.set_parent_of(
         parentof, expiration, timestamp)
@@ -525,8 +525,8 @@ def test_set_parent_of_past_timestamp(cli, init_parents):
     vid = list(init_parents)[0]
     parents = init_parents[vid]
 
-    timestamp = datetime.fromisoformat('2000-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2000-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     (updated_parentof, exists) = cli.set_parent_of(
         parents[2], expiration, timestamp)
@@ -552,8 +552,8 @@ def test_set_parent_of_future_timestamp(cli, init_parents):
     vid = list(init_parents)[0]
     parents = init_parents[vid]
 
-    timestamp = datetime.fromisoformat('2024-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     (updated_parentof, exists) = cli.set_parent_of(
         parents[2], expiration, timestamp)
@@ -578,8 +578,8 @@ def test_set_parent_of_in_between_timestamp(cli, init_parents):
     vid = list(init_parents)[0]
     parents = init_parents[vid]
 
-    timestamp = datetime.fromisoformat('2021-07-04T01:00:00')
-    expiration = datetime.fromisoformat('2024-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2021-07-04T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
     (updated_parentof, exists) = cli.set_parent_of(
         parents[2], expiration, timestamp)
@@ -600,8 +600,8 @@ def test_set_parent_of_same_child_parent(cli, init_assets):
     vid = init_assets[0].vid
     parentof = ParentOf(vid, vid)
 
-    timestamp = datetime.fromisoformat('2022-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     with pytest.raises(InventoryError, match=r'.*same.*'):
         cli.set_parent_of(parentof, expiration, timestamp)
@@ -612,8 +612,8 @@ def test_set_parent_of_not_found_error(cli, init_assets):
     unknown vertices."""
     vid = init_assets[0].vid
 
-    timestamp = datetime.fromisoformat('2022-01-01T01:00:00')
-    expiration = datetime.fromisoformat('2022-01-07T01:00:00')
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     # Unknown parent_vid.
     with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
@@ -693,8 +693,8 @@ def test_set_owns(cli, init_owners):
 
     owns = Owns(team_vid, asset_vid)
 
-    start_time = datetime.fromisoformat('2022-01-01T01:00:00')
-    end_time = datetime.fromisoformat('2022-01-07T01:00:00')
+    start_time = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    end_time = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     (updated_owns, exists) = cli.set_owns(owns, start_time, end_time)
 
@@ -720,8 +720,8 @@ def test_set_owns_new(cli, init_owners, init_teams):
 
     owns = Owns(team_vid, asset_vid)
 
-    start_time = datetime.fromisoformat('2022-01-01T01:00:00')
-    end_time = datetime.fromisoformat('2022-01-07T01:00:00')
+    start_time = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    end_time = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     (updated_owns, exists) = cli.set_owns(owns, start_time, end_time)
 
@@ -743,8 +743,8 @@ def test_set_owns_not_found_error(cli, init_teams, init_assets):
     team_vid = init_teams[0].vid
     asset_vid = init_assets[0].vid
 
-    start_time = datetime.fromisoformat('2022-01-01T01:00:00')
-    end_time = datetime.fromisoformat('2022-01-07T01:00:00')
+    start_time = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    end_time = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     # Unknown parent_vid.
     with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:

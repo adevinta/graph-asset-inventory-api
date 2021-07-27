@@ -33,8 +33,8 @@ def test_post_assets(flask_cli, init_api_assets):
     """Tests the API endpoint ``POST /v1/assets``."""
     asset_id = AssetID('new_type', 'new_identifier')
 
-    timestamp = datetime.fromisoformat('2021-07-01T01:00:00')
-    expiration = datetime.fromisoformat('2021-07-07T01:00:00')
+    timestamp = datetime.fromisoformat('2021-07-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2021-07-07T01:00:00+00:00')
 
     asset_req = AssetReq(asset_id, timestamp, expiration)
 
@@ -68,8 +68,8 @@ def test_post_assets_conflict_error(flask_cli, init_api_assets):
     asset_id = AssetID(
         init_api_assets[2]['type'], init_api_assets[2]['identifier'])
 
-    timestamp = datetime.fromisoformat('2024-07-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-07-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-07-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-07-07T01:00:00+00:00')
 
     asset_req = AssetReq(asset_id, timestamp, expiration)
 
@@ -138,8 +138,8 @@ def test_put_assets(flask_cli, init_api_assets):
     asset_id = AssetID(
         init_api_assets[2]['type'], init_api_assets[2]['identifier'])
 
-    timestamp = datetime.fromisoformat('2024-07-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-07-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-07-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-07-07T01:00:00+00:00')
 
     asset_req = AssetReq(asset_id, timestamp, expiration)
 
@@ -172,8 +172,8 @@ def test_put_assets_id_not_found_error(flask_cli, init_api_assets):
     asset_id = AssetID(
         init_api_assets[2]['type'], init_api_assets[2]['identifier'])
 
-    timestamp = datetime.fromisoformat('2024-07-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-07-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-07-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-07-07T01:00:00+00:00')
 
     asset_req = AssetReq(asset_id, timestamp, expiration)
 
@@ -198,8 +198,8 @@ def test_put_assets_asset_id_not_found_error(flask_cli, init_api_assets):
 
     asset_id = AssetID(init_api_assets[2]['type'], 'identifier1337')
 
-    timestamp = datetime.fromisoformat('2024-07-01T01:00:00')
-    expiration = datetime.fromisoformat('2024-07-07T01:00:00')
+    timestamp = datetime.fromisoformat('2024-07-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-07-07T01:00:00+00:00')
 
     asset_req = AssetReq(asset_id, timestamp, expiration)
 

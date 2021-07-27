@@ -2,3 +2,11 @@ Flask==2.0.0
 connexion[swagger-ui]==2.7.0
 gunicorn==20.1.0
 gremlinpython==3.5.0
+
+# Enable Connexion's date-time validation. For more information, please see
+# https://github.com/zalando/connexion/issues/476#issuecomment-311928443
+strict-rfc3339==0.7
+
+# Parse rfc3339 date-time strings. For more information, please see
+# https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
+python-dateutil==2.8.2
