@@ -12,7 +12,6 @@ from graph_asset_inventory_api.inventory import (
     Team,
     ParentOf,
     Owns,
-    InventoryError,
     NotFoundError,
     ConflictError,
 )
@@ -84,6 +83,18 @@ def test_add_team(cli, init_teams):
 
     final_teams = init_teams + [created_team]
     assert compare_unsorted_list(cli.teams(), final_teams, lambda x: x.vid)
+
+
+def test_add_team_empty_identifier_name(cli, init_teams):
+    """Tests the method ``add_asset`` of the class ``InventoryClient`` with an
+    empty identifier or name string."""
+    with pytest.raises(ValueError, match='invalid identifier'):
+        cli.add_team(Team('', 'new_name'))
+    assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
+
+    with pytest.raises(ValueError, match='invalid name'):
+        cli.add_team(Team('new_identifier', ''))
+    assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
 
 
 def test_add_team_conflict_error(cli, init_teams):
@@ -258,6 +269,23 @@ def test_add_asset(cli, init_assets):
     assert compare_unsorted_list(cli.assets(), final_assets, lambda x: x.vid)
 
 
+def test_add_asset_empty_type_identifier(cli, init_assets):
+    """Tests the method ``add_asset`` of the class ``InventoryClient`` with an
+    empty type or identifier string."""
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
+
+    with pytest.raises(ValueError, match='invalid asset_id'):
+        cli.add_asset(
+            Asset(AssetID('', 'identifier_created')), expiration, timestamp)
+    assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
+
+    with pytest.raises(ValueError, match='invalid asset_id'):
+        cli.add_asset(
+            Asset(AssetID('type_created', '')), expiration, timestamp)
+    assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
+
+
 def test_add_asset_conflict_error(cli, init_assets):
     """Tests the method ``add_asset`` of the class ``InventoryClient`` with an
     already existing asset."""
@@ -383,6 +411,23 @@ def test_set_asset(cli, init_assets):
 
     final_assets = init_assets + [updated_asset]
     assert compare_unsorted_list(cli.assets(), final_assets, lambda x: x.vid)
+
+
+def test_set_asset_empty_type_identifier(cli, init_assets):
+    """Tests the method ``set_asset`` of the class ``InventoryClient`` with an
+    empty type or identifier string."""
+    timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
+
+    with pytest.raises(ValueError, match='invalid asset_id'):
+        cli.set_asset(
+            Asset(AssetID('', 'identifier_created')), expiration, timestamp)
+    assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
+
+    with pytest.raises(ValueError, match='invalid asset_id'):
+        cli.set_asset(
+            Asset(AssetID('type_created', '')), expiration, timestamp)
+    assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
 
 
 def test_set_asset_update_past_timestamp(cli, init_assets):
@@ -603,7 +648,7 @@ def test_set_parent_of_same_child_parent(cli, init_assets):
     timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
     expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
-    with pytest.raises(InventoryError, match=r'.*same.*'):
+    with pytest.raises(ValueError, match=r'.*same.*'):
         cli.set_parent_of(parentof, expiration, timestamp)
 
 

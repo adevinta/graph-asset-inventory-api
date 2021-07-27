@@ -1,16 +1,15 @@
 """This module implements the request handlers for the endpoints of the Asset
 Inventory API related to team operations."""
 
+import connexion.problem
+
 from graph_asset_inventory_api.context import get_inventory_client
 from graph_asset_inventory_api.inventory import (
     Team,
     NotFoundError,
     ConflictError,
 )
-from graph_asset_inventory_api.api import (
-    ApiError,
-    TeamResp,
-)
+from graph_asset_inventory_api.api import TeamResp
 
 
 def get_teams(page=None, size=100):
@@ -33,7 +32,9 @@ def post_teams(body):
     try:
         created_team = cli.add_team(team)
     except ConflictError:
-        return ApiError('team already exists').__dict__, 409
+        return connexion.problem(409, 'Conflict', 'Team already exists')
+    except ValueError as ex:
+        return connexion.problem(400, 'Bad Request', str(ex))
 
     resp = TeamResp.from_dbteam(created_team).__dict__
     return resp, 201
@@ -47,7 +48,7 @@ def get_teams_id(id):  # pylint: disable=redefined-builtin
     try:
         team = cli.team(id)
     except NotFoundError:
-        return ApiError('id not found').__dict__, 404
+        return connexion.problem(404, 'Not Found', 'ID not found')
 
     resp = TeamResp.from_dbteam(team).__dict__
     return resp, 200
@@ -60,7 +61,7 @@ def delete_teams_id(id):  # pylint: disable=redefined-builtin
     try:
         cli.drop_team(id)
     except NotFoundError:
-        return ApiError('id not found').__dict__, 404
+        return connexion.problem(404, 'Not Found', 'ID not found')
 
     return '', 204
 
@@ -75,7 +76,7 @@ def put_teams_id(id, body):  # pylint: disable=redefined-builtin
     try:
         updated_team = cli.update_team(id, team)
     except NotFoundError:
-        return ApiError('id not found').__dict__, 404
+        return connexion.problem(404, 'Not Found', 'ID not found')
 
     resp = TeamResp.from_dbteam(updated_team).__dict__
     return resp, 200

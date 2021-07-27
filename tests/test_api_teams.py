@@ -76,6 +76,43 @@ def test_post_teams_conflict_error(flask_cli, init_api_teams):
     )
 
 
+def test_post_teams_empty_identifier_name(flask_cli, init_api_teams):
+    """Tests the API endpoint ``POST /v1/teams`` with an empty identifier or
+    name string."""
+
+    # Empty identifier.
+    team_req = TeamReq('', 'new_name')
+    resp = flask_cli.post(
+        '/v1/teams',
+        data=json.dumps(team_req.__dict__),
+        content_type='application/json',
+    )
+
+    assert resp.status_code == 400
+
+    assert compare_unsorted_list(
+        json.loads(flask_cli.get('/v1/teams').data),
+        init_api_teams,
+        lambda x: x['id'],
+    )
+
+    # Empty name.
+    team_req = TeamReq('new_identifier', '')
+    resp = flask_cli.post(
+        '/v1/teams',
+        data=json.dumps(team_req.__dict__),
+        content_type='application/json',
+    )
+
+    assert resp.status_code == 400
+
+    assert compare_unsorted_list(
+        json.loads(flask_cli.get('/v1/teams').data),
+        init_api_teams,
+        lambda x: x['id'],
+    )
+
+
 def test_get_teams_id(flask_cli, init_api_teams):
     """Tests the API endpoint ``GET /v1/teams/{id}``."""
     team_id = init_api_teams[2]['id']

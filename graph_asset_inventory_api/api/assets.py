@@ -3,6 +3,8 @@ Inventory API related to asset operations."""
 
 import dateutil.parser
 
+import connexion.problem
+
 from graph_asset_inventory_api.context import get_inventory_client
 from graph_asset_inventory_api.inventory import (
     Asset,
@@ -10,10 +12,7 @@ from graph_asset_inventory_api.inventory import (
     NotFoundError,
     ConflictError,
 )
-from graph_asset_inventory_api.api import (
-    ApiError,
-    AssetResp,
-)
+from graph_asset_inventory_api.api import AssetResp
 
 
 def get_assets(page=None, size=100):
@@ -40,7 +39,9 @@ def post_assets(body):
     try:
         created_asset = cli.add_asset(asset, expiration, timestamp)
     except ConflictError:
-        return ApiError('asset already exists').__dict__, 409
+        return connexion.problem(409, 'Conflict', 'Asset already exists')
+    except ValueError:
+        return connexion.problem(400, 'Bad Request', 'Invalid asset ID')
 
     resp = AssetResp.from_dbasset(created_asset).__dict__
     return resp, 201
@@ -54,7 +55,7 @@ def get_assets_id(id):  # pylint: disable=redefined-builtin
     try:
         asset = cli.asset(id)
     except NotFoundError:
-        return ApiError('id not found').__dict__, 404
+        return connexion.problem(404, 'Not Found', 'ID not found')
 
     resp = AssetResp.from_dbasset(asset).__dict__
     return resp, 200
@@ -67,7 +68,7 @@ def delete_assets_id(id):  # pylint: disable=redefined-builtin
     try:
         cli.drop_asset(id)
     except NotFoundError:
-        return ApiError('id not found').__dict__, 404
+        return connexion.problem(404, 'Not Found', 'ID not found')
 
     return '', 204
 
@@ -86,7 +87,7 @@ def put_assets_id(id, body):  # pylint: disable=redefined-builtin
     try:
         updated_asset = cli.update_asset(id, asset, expiration, timestamp)
     except NotFoundError:
-        return ApiError('id not found').__dict__, 404
+        return connexion.problem(404, 'Not Found', 'ID not found')
 
     resp = AssetResp.from_dbasset(updated_asset).__dict__
     return resp, 200

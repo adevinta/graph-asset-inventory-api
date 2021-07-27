@@ -1,13 +1,6 @@
 """Provides a REST API to interact with an asset inventory."""
 
 
-class ApiError:
-    """Represents an API error."""
-
-    def __init__(self, msg):
-        self.error = msg
-
-
 # Teams.
 
 

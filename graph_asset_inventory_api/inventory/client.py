@@ -100,6 +100,12 @@ class InventoryClient:
     def add_team(self, team):
         """Create a new team. If the team already exists, a ``ConflictError``
         exception is raised."""
+        if team.identifier == '':
+            raise ValueError('invalid identifier')
+
+        if team.name == '':
+            raise ValueError('invalid name')
+
         vteams = self._g.add_team(team).toList()
 
         if len(vteams) == 0:
@@ -195,11 +201,14 @@ class InventoryClient:
         """Create a new asset. If the asset already exists, a ``ConflictError``
         exception is raised. If the timestamp is not provided, UTC now is
         used."""
+        if asset.asset_id.type == '' or asset.asset_id.identifier == '':
+            raise ValueError('invalid asset_id')
+
         if timestamp is None:
             timestamp = datetime.utcnow()
 
         if expiration < timestamp:
-            raise InventoryError('expiration before timestamp')
+            raise ValueError('expiration before timestamp')
 
         vassets = self._g.add_asset(asset, expiration, timestamp).toList()
 
@@ -231,7 +240,7 @@ class InventoryClient:
             timestamp = datetime.utcnow()
 
         if expiration < timestamp:
-            raise InventoryError('expiration before timestamp')
+            raise ValueError('expiration before timestamp')
 
         vassets = self._g.update_asset(
             vid, asset, expiration, timestamp).toList()
@@ -260,11 +269,14 @@ class InventoryClient:
         Thus, an asset can be immediately invalidated with
         ``timestamp = expiration = now()``.
         """
+        if asset.asset_id.type == '' or asset.asset_id.identifier == '':
+            raise ValueError('invalid asset_id')
+
         if timestamp is None:
             timestamp = datetime.utcnow()
 
         if expiration < timestamp:
-            raise InventoryError('expiration before timestamp')
+            raise ValueError('expiration before timestamp')
 
         vassets = self._g.set_asset(asset, expiration, timestamp).toList()
 
@@ -351,11 +363,11 @@ class InventoryClient:
 
         # Check that expiration is not before the timestamp.
         if expiration < timestamp:
-            raise InventoryError('expiration before timestamp')
+            raise ValueError('expiration before timestamp')
 
         # Check that child and parent are not the same.
         if parentof.child_vid == parentof.parent_vid:
-            raise InventoryError('child_vid and parent_vid are the same')
+            raise ValueError('child_vid and parent_vid are the same')
 
         # Check if both vertices exist.
         vasset_child = self._g \
@@ -448,7 +460,7 @@ class InventoryClient:
 
         # Check that expiration is not before the timestamp.
         if end_time < start_time:
-            raise InventoryError('start_time before end_time')
+            raise ValueError('start_time before end_time')
 
         # Check if both vertices exist.
         vteam = self._g \

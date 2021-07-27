@@ -99,6 +99,47 @@ def test_post_assets_conflict_error(flask_cli, init_api_assets):
     )
 
 
+def test_post_assets_empty_type_identifier(flask_cli, init_api_assets):
+    """Tests the API endpoint ``POST /v1/assets`` with an empty type or
+    identifier string."""
+    timestamp = datetime.fromisoformat('2024-07-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2024-07-07T01:00:00+00:00')
+
+    # Empty type.
+    asset_req = AssetReq(
+        AssetID('', init_api_assets[2]['identifier']), timestamp, expiration)
+    resp = flask_cli.post(
+        '/v1/assets',
+        data=json.dumps(asset_req.__dict__),
+        content_type='application/json',
+    )
+
+    assert resp.status_code == 400
+
+    assert compare_unsorted_list(
+        json.loads(flask_cli.get('/v1/assets').data),
+        init_api_assets,
+        lambda x: x['id'],
+    )
+
+    # Empty identifier.
+    asset_req = AssetReq(
+        AssetID(init_api_assets[2]['type'], ''), timestamp, expiration)
+    resp = flask_cli.post(
+        '/v1/assets',
+        data=json.dumps(asset_req.__dict__),
+        content_type='application/json',
+    )
+
+    assert resp.status_code == 400
+
+    assert compare_unsorted_list(
+        json.loads(flask_cli.get('/v1/assets').data),
+        init_api_assets,
+        lambda x: x['id'],
+    )
+
+
 def test_get_assets_id(flask_cli, init_api_assets):
     """Tests the API endpoint ``GET /v1/assets/{id}``."""
     asset_id = init_api_assets[2]['id']
