@@ -25,6 +25,7 @@ from graph_asset_inventory_api.api import (
     TeamResp,
     AssetResp,
     ParentOfResp,
+    OwnsResp,
 )
 
 
@@ -351,3 +352,16 @@ def init_owners(g, init_teams, init_assets):
             dbowners[asset_vid].append(DbOwns.from_eowns(eowns))
 
     yield dbowners
+
+
+@pytest.fixture
+def init_api_owners(init_owners):
+    """Converts the ``DbOwns`` lists created by ``init_owners`` into lists
+    of dicts that can be used to test the responses of the API endpoints."""
+    api_owners = {}
+    for k, v in init_owners.items():
+        api_owners[k] = [
+            OwnsResp.from_dbowns(o).__dict__ for o in v
+        ]
+
+    yield api_owners

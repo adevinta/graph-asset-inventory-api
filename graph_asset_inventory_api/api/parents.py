@@ -1,8 +1,7 @@
 """This module implements the request handlers for the endpoints of the Asset
 Inventory API related to parents operations."""
 
-from datetime import datetime
-
+import dateutil.parser
 import connexion.problem
 
 from graph_asset_inventory_api.context import get_inventory_client
@@ -35,10 +34,10 @@ def put_assets_child_id_parents_parent_id(child_id, parent_id, body):
 
     parentof = ParentOf(parent_id, child_id)
 
-    expiration = datetime.fromisoformat(body['expiration'])
+    expiration = dateutil.parser.isoparse(body['expiration'])
     timestamp = None
     if 'timestamp' in body:
-        timestamp = datetime.fromisoformat(body['timestamp'])
+        timestamp = dateutil.parser.isoparse(body['timestamp'])
 
     updated_parentof = None
     exists = None

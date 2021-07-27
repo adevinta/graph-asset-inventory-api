@@ -2,7 +2,6 @@
 Inventory API related to asset operations."""
 
 import dateutil.parser
-
 import connexion.problem
 
 from graph_asset_inventory_api.context import get_inventory_client

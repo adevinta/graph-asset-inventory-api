@@ -270,7 +270,7 @@ class InventoryTraversalSource(GraphTraversalSource):
             .inE() \
             .is_owns()
 
-    def set_owns(self, owns_, start_time, end_time):
+    def set_owns(self, owns_, start_time, end_time=None):
         """Updates an ``owns`` edge with the specified time attributes. If
         the edge does not exist, it is created."""
         return self \

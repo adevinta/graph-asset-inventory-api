@@ -342,6 +342,7 @@ paths:
         required: true
 
     get:
+      operationId: graph_asset_inventory_api.api.owners.get_assets_id_owners
       summary: Returns the list of owned-by relationships of an asset.
       tags:
         - Assets
@@ -387,6 +388,7 @@ paths:
         required: true
 
     put:
+      operationId: graph_asset_inventory_api.api.owners.put_assets_asset_id_owners_team_id
       summary: Adds an owner to an asset or updates and existing relationship.
       tags:
         - Assets
@@ -409,6 +411,7 @@ paths:
           description: The asset or the team do not exist.
 
     delete:
+      operationId: graph_asset_inventory_api.api.owners.delete_assets_asset_id_owners_team_id
       summary: Deletes an owned-by relationship.
       tags:
         - Assets

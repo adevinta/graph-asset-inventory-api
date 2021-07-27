@@ -296,7 +296,7 @@ class TeamTimeAttr:
     """Represents the time attributes associated with a Team and, specifically,
     with an ``owns`` relationship."""
 
-    def __init__(self, start_time, end_time):
+    def __init__(self, start_time, end_time=None):
         self.start_time = start_time
         self.end_time = end_time
 
@@ -365,7 +365,7 @@ class DbOwns(Owns):
 
         if not isinstance(eowns['start_time'], datetime):
             raise InventoryError('start_time is not a datetime')
-        if not isinstance(eowns['end_time'], datetime):
+        if 'end_time' in eowns and not isinstance(eowns['end_time'], datetime):
             raise InventoryError('end_time is not a datetime')
 
         eid = eowns[T.id]
@@ -373,7 +373,11 @@ class DbOwns(Owns):
         asset_vid = eowns[Direction.IN][T.id]
 
         start_time = eowns['start_time'].replace(tzinfo=timezone.utc)
-        end_time = eowns['end_time'].replace(tzinfo=timezone.utc)
+
+        end_time = None
+        if 'end_time' in eowns:
+            end_time = eowns['end_time'].replace(tzinfo=timezone.utc)
+
         time_attr = TeamTimeAttr(start_time, end_time)
 
         return cls(team_vid, asset_vid, eid, time_attr)

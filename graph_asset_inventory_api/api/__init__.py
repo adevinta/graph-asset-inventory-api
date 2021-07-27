@@ -179,3 +179,71 @@ class ParentOfResp:
             dbparentof.child_vid,
             dbparentof.time_attr,
         )
+
+
+# Owners.
+
+
+class OwnsReq:
+    """Represents an ``owns`` relationship from the point of view of an API
+    request."""
+
+    def __init__(self, time_attr):
+        self.start_time = time_attr.start_time.isoformat()
+        self.end_time = None
+        if time_attr.end_time is not None:
+            self.end_time = time_attr.end_time.isoformat()
+
+    def __repr__(self):
+        return f'{{start_time: {self.start_time}, end_time: {self.end_time}}}'
+
+    def __str__(self):
+        return f'({self.start_time}, {self.end_time})'
+
+    def __eq__(self, o):
+        if not isinstance(self, o.__class__):
+            return False
+        return self.start_time == o.start_time and self.end_time == o.end_time
+
+
+class OwnsResp:
+    """Represents an ``owns`` relationship from the point of view of an API
+    response."""
+
+    def __init__(self, id_, team_id, asset_id, time_attr):
+        self.id = id_
+        self.team_id = team_id
+        self.asset_id = asset_id
+        self.start_time = time_attr.start_time.isoformat()
+        self.end_time = None
+        if time_attr.end_time is not None:
+            self.end_time = time_attr.end_time.isoformat()
+
+    def __repr__(self):
+        return f'{{id: {self.id}, ' \
+               f'team_id: {self.team_id}, ' \
+               f'asset_id: {self.asset_id}, ' \
+               f'start_time: {self.start_time}, ' \
+               f'end_time: {self.end_time}}}'
+
+    def __str__(self):
+        return f'{self.team_id}-owns->{self.asset_id}@{self.id}'
+
+    def __eq__(self, o):
+        if not isinstance(self, o.__class__):
+            return False
+        return self.id == o.id and \
+            self.team_id == o.team_id and \
+            self.asset_id == o.asset_id and \
+            self.start_time == o.start_time and \
+            self.end_time == o.end_time
+
+    @classmethod
+    def from_dbowns(cls, dbowns):
+        """Creates a ``OwnsResp`` from a ``DbOwns``."""
+        return cls(
+            dbowns.eid,
+            dbowns.team_vid,
+            dbowns.asset_vid,
+            dbowns.time_attr,
+        )

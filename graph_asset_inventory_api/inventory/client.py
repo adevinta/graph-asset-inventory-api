@@ -448,7 +448,7 @@ class InventoryClient:
         dbowners = [DbOwns.from_eowns(eo) for eo in eowners]
         return dbowners
 
-    def set_owns(self, owns, start_time, end_time):
+    def set_owns(self, owns, start_time, end_time=None):
         """Updates an ``owns`` relationship with the specified time attributes.
         If the relationship does not exist, it is created. This function
         returns a tuple containing the ``DbOwns`` and a boolean that indicates
@@ -456,10 +456,9 @@ class InventoryClient:
 
         If the team or the asset do not exists, a ``NotFoundError`` exception
         is raised."""
-        # TODO(rm): end_time is optional.
 
         # Check that expiration is not before the timestamp.
-        if end_time < start_time:
+        if end_time is not None and end_time < start_time:
             raise ValueError('start_time before end_time')
 
         # Check if both vertices exist.
