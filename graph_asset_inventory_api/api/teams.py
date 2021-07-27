@@ -33,8 +33,8 @@ def post_teams(body):
         created_team = cli.add_team(team)
     except ConflictError:
         return connexion.problem(409, 'Conflict', 'Team already exists')
-    except ValueError as ex:
-        return connexion.problem(400, 'Bad Request', str(ex))
+    except ValueError as e:
+        return connexion.problem(400, 'Bad Request', str(e))
 
     resp = TeamResp.from_dbteam(created_team).__dict__
     return resp, 201
