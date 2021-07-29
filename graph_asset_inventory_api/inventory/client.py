@@ -103,10 +103,10 @@ class InventoryClient:
         """Create a new team. If the team already exists, a ``ConflictError``
         exception is raised."""
         if team.identifier == '':
-            raise ValueError('invalid identifier')
+            raise ValueError('empty team identifier')
 
         if team.name == '':
-            raise ValueError('invalid name')
+            raise ValueError('empty team name')
 
         vteams = self._g.add_team(team).toList()
 
@@ -200,7 +200,7 @@ class InventoryClient:
         exception is raised. If the timestamp is not provided, UTC now is
         used."""
         if asset.asset_id.type == '' or asset.asset_id.identifier == '':
-            raise ValueError('invalid asset_id')
+            raise ValueError('empty asset type or identifier')
 
         if timestamp is None:
             timestamp = datetime.utcnow()
@@ -268,7 +268,7 @@ class InventoryClient:
         ``timestamp = expiration = now()``.
         """
         if asset.asset_id.type == '' or asset.asset_id.identifier == '':
-            raise ValueError('invalid asset_id')
+            raise ValueError('empty asset type or identifier')
 
         if timestamp is None:
             timestamp = datetime.utcnow()

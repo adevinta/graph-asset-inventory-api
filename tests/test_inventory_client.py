@@ -88,11 +88,11 @@ def test_add_team(cli, init_teams):
 def test_add_team_empty_identifier_name(cli, init_teams):
     """Tests the method ``add_asset`` of the class ``InventoryClient`` with an
     empty identifier or name string."""
-    with pytest.raises(ValueError, match='invalid identifier'):
+    with pytest.raises(ValueError, match='.*empty.*'):
         cli.add_team(Team('', 'new_name'))
     assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
 
-    with pytest.raises(ValueError, match='invalid name'):
+    with pytest.raises(ValueError, match='.*empty.*'):
         cli.add_team(Team('new_identifier', ''))
     assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
 
@@ -275,12 +275,12 @@ def test_add_asset_empty_type_identifier(cli, init_assets):
     timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
     expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
-    with pytest.raises(ValueError, match='invalid asset_id'):
+    with pytest.raises(ValueError, match='.*empty.*'):
         cli.add_asset(
             Asset(AssetID('', 'identifier_created')), expiration, timestamp)
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
 
-    with pytest.raises(ValueError, match='invalid asset_id'):
+    with pytest.raises(ValueError, match='.*empty.*'):
         cli.add_asset(
             Asset(AssetID('type_created', '')), expiration, timestamp)
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
@@ -419,12 +419,12 @@ def test_set_asset_empty_type_identifier(cli, init_assets):
     timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
     expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
-    with pytest.raises(ValueError, match='invalid asset_id'):
+    with pytest.raises(ValueError, match='.*empty.*'):
         cli.set_asset(
             Asset(AssetID('', 'identifier_created')), expiration, timestamp)
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
 
-    with pytest.raises(ValueError, match='invalid asset_id'):
+    with pytest.raises(ValueError, match='.*empty.*'):
         cli.set_asset(
             Asset(AssetID('type_created', '')), expiration, timestamp)
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)

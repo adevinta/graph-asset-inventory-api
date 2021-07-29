@@ -424,14 +424,14 @@ paths:
         '404':
           description: The asset, the team or the relationship were not found.
 
-  /v1/batch:
+  /v1/assets/bulk:
     post:
+      operationId: graph_asset_inventory_api.api.assets_bulk.post_assets_bulk
       summary: Creates multiple assets and their relationships.
       tags:
         - Assets
-        - Teams
         - Parents
-        - Owners
+        - Bulk
         - v1
       requestBody:
         content:
@@ -439,9 +439,6 @@ paths:
             schema:
               type: object
               properties:
-                timestamp:
-                  type: string
-                  format: date-time
                 assets:
                   type: array
                   items:
@@ -452,12 +449,11 @@ paths:
                           parents:
                             type: array
                             items:
-                              $ref: '#/components/schemas/AssetTupleID'
-                          owners:
-                            type: array
-                            items:
-                              type: string
-                            description: An array of Team identifiers.
+                              allOf:
+                                - $ref: '#/components/schemas/AssetTupleID'
+                                - $ref: '#/components/schemas/ParentOfReq'
+              required:
+                - assets
       responses:
         '204':
           description: The assets and their relationships were successfully created.
