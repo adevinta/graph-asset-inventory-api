@@ -53,8 +53,7 @@ class ApiBulkAssetInsert:
 
     def _set_parents(self, child_vid, parents_req):
         """Updates the ``parent_of`` relationships in the bulk request. If the
-        relationship does not exist, it is created. It also updates the
-        internal cache with every operation."""
+        relationship does not exist, it is created."""
         for parent_req in parents_req:
             parent_id = AssetID(parent_req['type'], parent_req['identifier'])
             parent_vid = self._get_asset_vid(parent_id)
@@ -71,7 +70,7 @@ class ApiBulkAssetInsert:
     def _get_asset_vid(self, asset_id):
         """Returns the ``vid`` corresponding to the passed ``asset_id``. First,
         it tries to retrieve it from the cache. If it is not found, a DB query
-        is executed."""
+        is executed and the cache updated."""
         if asset_id in self.cache:
             return self.cache[asset_id]
 
