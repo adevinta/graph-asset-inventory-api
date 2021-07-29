@@ -43,8 +43,8 @@ def put_assets_asset_id_owners_team_id(asset_id, team_id, body):
     exists = None
     try:
         updated_owns, exists = cli.set_owns(owns, start_time, end_time)
-    except NotFoundError:
-        return connexion.problem(404, 'Not Found', 'ID not found')
+    except NotFoundError as e:
+        return connexion.problem(404, 'Not Found', f'ID not found: {e.name}')
 
     status_code = 200 if exists else 201
 
@@ -62,7 +62,7 @@ def delete_assets_asset_id_owners_team_id(asset_id, team_id):
             if owner.team_vid == team_id:
                 cli.drop_owns(owner.eid)
                 return '', 204
-    except NotFoundError:
-        pass
+    except NotFoundError as e:
+        return connexion.problem(404, 'Not Found', f'ID not found: {e.name}')
 
-    return connexion.problem(404, 'Not Found', 'ID not found')
+    return connexion.problem(404, 'Not Found', f'owner not found: {team_id}')

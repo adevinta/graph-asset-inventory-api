@@ -44,8 +44,8 @@ def put_assets_child_id_parents_parent_id(child_id, parent_id, body):
     try:
         updated_parentof, exists = cli.set_parent_of(
             parentof, expiration, timestamp)
-    except NotFoundError:
-        return connexion.problem(404, 'Not Found', 'ID not found')
+    except NotFoundError as e:
+        return connexion.problem(404, 'Not Found', f'ID not found: {e.name}')
 
     status_code = 200 if exists else 201
 
@@ -63,7 +63,8 @@ def delete_assets_child_id_parents_parent_id(child_id, parent_id):
             if parent.parent_vid == parent_id:
                 cli.drop_parent_of(parent.eid)
                 return '', 204
-    except NotFoundError:
-        pass
+    except NotFoundError as e:
+        return connexion.problem(404, 'Not Found', f'ID not found: {e.name}')
 
-    return connexion.problem(404, 'Not Found', 'ID not found')
+    return connexion.problem(
+        404, 'Not Found', f'parent not found: {parent_id}')
