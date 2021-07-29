@@ -1,7 +1,10 @@
 """This modules provides the class ``InventoryClient`` that provides access to
 the Asset Inventory."""
 
-from datetime import datetime
+from datetime import (
+    datetime,
+    timezone,
+)
 
 from gremlin_python.process.anonymous_traversal import traversal
 from gremlin_python.process.traversal import (
@@ -203,7 +206,7 @@ class InventoryClient:
             raise ValueError('empty asset type or identifier')
 
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
@@ -235,7 +238,7 @@ class InventoryClient:
         ``timestamp = expiration = now()``.
         """
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
@@ -271,7 +274,7 @@ class InventoryClient:
             raise ValueError('empty asset type or identifier')
 
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
@@ -353,7 +356,7 @@ class InventoryClient:
         ``timestamp = expiration = now()``.
         """
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         # Check that expiration is not before the timestamp.
         if expiration < timestamp:
