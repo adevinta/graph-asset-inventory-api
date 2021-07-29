@@ -457,6 +457,8 @@ paths:
       responses:
         '204':
           description: The assets and their relationships were successfully created.
+        '404':
+          description: A parent asset was not found.
 
 components:
   schemas:
