@@ -74,9 +74,9 @@ class ApiBulkAssetInsert:
         if asset_id in self.cache:
             return self.cache[asset_id]
 
-        parent = self.cli.asset_id(asset_id)
-        self.cache[asset_id] = parent.vid
-        return parent.vid
+        asset = self.cli.asset_id(asset_id)
+        self.cache[asset_id] = asset.vid
+        return asset.vid
 
 
 def post_assets_bulk(body):
