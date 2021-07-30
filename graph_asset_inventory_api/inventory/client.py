@@ -28,7 +28,9 @@ from graph_asset_inventory_api.inventory.dsl import (
 
 
 class InventoryClient:
-    """Client that provides access to the Asset Inventory."""
+    """Client that provides access to the Asset Inventory.
+
+    This Client is concurrent-safe in terms of DB integrity."""
 
     def __init__(self, neptune_endpoint):
         self._conn = DriverRemoteConnection(neptune_endpoint, 'g')
@@ -132,16 +134,12 @@ class InventoryClient:
     def drop_team(self, vid):
         """Deletes the team with vertex ID ``vid``. If the team does not exist,
         a ``NotFoundError`` exception is raised."""
-        vteams = self._g \
-            .team(vid) \
-            .toList()
+        nteams = self._g.drop_team(vid).next()
 
-        if len(vteams) == 0:
+        if nteams == 0:
             raise NotFoundError(vid)
-        if len(vteams) > 1:
+        if nteams > 1:
             raise InconsistentStateError('duplicated team')
-
-        self._g.team(vid).drop().iterate()
 
     # Assets.
 
@@ -293,16 +291,12 @@ class InventoryClient:
     def drop_asset(self, vid):
         """Deletes the asset with vertex ID ``vid``. If the asset does not
         exist, a ``NotFoundError`` exception is raised."""
-        vassets = self._g \
-            .asset(vid) \
-            .toList()
+        nassets = self._g.drop_asset(vid).next()
 
-        if len(vassets) == 0:
+        if nassets == 0:
             raise NotFoundError(vid)
-        if len(vassets) > 1:
+        if nassets > 1:
             raise InconsistentStateError('duplicated asset')
-
-        self._g.asset(vid).drop().iterate()
 
     # Parents.
 
@@ -403,16 +397,12 @@ class InventoryClient:
     def drop_parent_of(self, eid):
         """Deletes the ``parent_of`` edge with ID ``eid``. If the edge does not
         exist, a ``NotFoundError`` exception is raised."""
-        vparentofs = self._g \
-            .parent_of(eid) \
-            .toList()
+        nparentofs = self._g.drop_parent_of(eid).next()
 
-        if len(vparentofs) == 0:
+        if nparentofs == 0:
             raise NotFoundError(eid)
-        if len(vparentofs) > 1:
+        if nparentofs > 1:
             raise InconsistentStateError('duplicated edge')
-
-        self._g.parent_of(eid).drop().iterate()
 
     # Owners.
 
@@ -495,13 +485,9 @@ class InventoryClient:
     def drop_owns(self, eid):
         """Deletes the ``owns`` edge with ID ``eid``. If the edge does not
         exist, a ``NotFoundError`` exception is raised."""
-        eowns = self._g \
-            .owns(eid) \
-            .toList()
+        nowns = self._g.drop_owns(eid).next()
 
-        if len(eowns) == 0:
+        if nowns == 0:
             raise NotFoundError(eid)
-        if len(eowns) > 1:
+        if nowns > 1:
             raise InconsistentStateError('duplicated edge')
-
-        self._g.owns(eid).drop().iterate()

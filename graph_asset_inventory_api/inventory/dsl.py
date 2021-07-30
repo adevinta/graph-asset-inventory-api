@@ -97,6 +97,13 @@ class InventoryTraversalSource(GraphTraversalSource):
             .property('name', team.name) \
             .elementMap()
 
+    def drop_team(self, vid):
+        """Deletes the ``Team`` vertex with id ``vid``."""
+        return self \
+            .team(vid) \
+            .sideEffect(__.drop()) \
+            .count()
+
     # Assets.
 
     def assets(self):
@@ -202,6 +209,13 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(False)),
             )
 
+    def drop_asset(self, vid):
+        """Deletes the ``Asset`` vertex with id ``vid``."""
+        return self \
+            .asset(vid) \
+            .sideEffect(__.drop()) \
+            .count()
+
     # Parents.
 
     def parent_of(self, eid):
@@ -260,6 +274,13 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(False)),
             )
 
+    def drop_parent_of(self, eid):
+        """Deletes the ``parent_of`` edge with id ``eid``."""
+        return self \
+            .parent_of(eid) \
+            .sideEffect(__.drop()) \
+            .count()
+
     # Owners.
 
     def owns(self, eid):
@@ -300,3 +321,10 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
             )
+
+    def drop_owns(self, eid):
+        """Deletes the ``owns`` edge with id ``eid``."""
+        return self \
+            .owns(eid) \
+            .sideEffect(__.drop()) \
+            .count()
