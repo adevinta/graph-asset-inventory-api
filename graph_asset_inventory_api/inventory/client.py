@@ -1,7 +1,10 @@
 """This modules provides the class ``InventoryClient`` that provides access to
 the Asset Inventory."""
 
-from datetime import datetime
+from datetime import (
+    datetime,
+    timezone,
+)
 
 from gremlin_python.process.anonymous_traversal import traversal
 from gremlin_python.process.traversal import (
@@ -103,10 +106,10 @@ class InventoryClient:
         """Create a new team. If the team already exists, a ``ConflictError``
         exception is raised."""
         if team.identifier == '':
-            raise ValueError('invalid identifier')
+            raise ValueError('empty team identifier')
 
         if team.name == '':
-            raise ValueError('invalid name')
+            raise ValueError('empty team name')
 
         vteams = self._g.add_team(team).toList()
 
@@ -200,10 +203,10 @@ class InventoryClient:
         exception is raised. If the timestamp is not provided, UTC now is
         used."""
         if asset.asset_id.type == '' or asset.asset_id.identifier == '':
-            raise ValueError('invalid asset_id')
+            raise ValueError('empty asset type or identifier')
 
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
@@ -235,7 +238,7 @@ class InventoryClient:
         ``timestamp = expiration = now()``.
         """
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
@@ -268,10 +271,10 @@ class InventoryClient:
         ``timestamp = expiration = now()``.
         """
         if asset.asset_id.type == '' or asset.asset_id.identifier == '':
-            raise ValueError('invalid asset_id')
+            raise ValueError('empty asset type or identifier')
 
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
@@ -353,7 +356,7 @@ class InventoryClient:
         ``timestamp = expiration = now()``.
         """
         if timestamp is None:
-            timestamp = datetime.utcnow()
+            timestamp = datetime.now(timezone.utc)
 
         # Check that expiration is not before the timestamp.
         if expiration < timestamp:
