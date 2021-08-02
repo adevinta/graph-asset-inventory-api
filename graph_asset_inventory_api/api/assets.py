@@ -2,7 +2,6 @@
 Inventory API related to asset operations."""
 
 import dateutil.parser
-
 import connexion.problem
 
 from graph_asset_inventory_api.context import get_inventory_client
@@ -40,8 +39,8 @@ def post_assets(body):
         created_asset = cli.add_asset(asset, expiration, timestamp)
     except ConflictError:
         return connexion.problem(409, 'Conflict', 'Asset already exists')
-    except ValueError:
-        return connexion.problem(400, 'Bad Request', 'Invalid asset ID')
+    except ValueError as e:
+        return connexion.problem(400, 'Bad Request', str(e))
 
     resp = AssetResp.from_dbasset(created_asset).__dict__
     return resp, 201

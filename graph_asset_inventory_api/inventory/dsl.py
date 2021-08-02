@@ -97,6 +97,13 @@ class InventoryTraversalSource(GraphTraversalSource):
             .property('name', team.name) \
             .elementMap()
 
+    def drop_team(self, vid):
+        """Deletes the ``Team`` vertex with id ``vid``."""
+        return self \
+            .team(vid) \
+            .sideEffect(__.drop()) \
+            .count()
+
     # Assets.
 
     def assets(self):
@@ -202,6 +209,13 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(False)),
             )
 
+    def drop_asset(self, vid):
+        """Deletes the ``Asset`` vertex with id ``vid``."""
+        return self \
+            .asset(vid) \
+            .sideEffect(__.drop()) \
+            .count()
+
     # Parents.
 
     def parent_of(self, eid):
@@ -227,7 +241,11 @@ class InventoryTraversalSource(GraphTraversalSource):
           ``expiration = expiration``.
         - Otherwise, nothing is modified."""
         return self \
-            .asset(parentof.child_vid) \
+            .V(parentof.parent_vid) \
+            .is_asset() \
+            .as_('parent_v') \
+            .V(parentof.child_vid) \
+            .is_asset() \
             .coalesce(
                 # The edge exists.
                 __.inE('parent_of').filter(
@@ -247,7 +265,7 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.identity().elementMap())
                 .by(__.constant(True)),
                 # The edge does not exist.
-                __.addE('parent_of').from_(__.V(parentof.parent_vid))
+                __.addE('parent_of').from_('parent_v')
                 .property('first_seen', timestamp)
                 .property('last_seen', timestamp)
                 .property('expiration', expiration)
@@ -255,6 +273,13 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
             )
+
+    def drop_parent_of(self, eid):
+        """Deletes the ``parent_of`` edge with id ``eid``."""
+        return self \
+            .parent_of(eid) \
+            .sideEffect(__.drop()) \
+            .count()
 
     # Owners.
 
@@ -270,11 +295,15 @@ class InventoryTraversalSource(GraphTraversalSource):
             .inE() \
             .is_owns()
 
-    def set_owns(self, owns_, start_time, end_time):
+    def set_owns(self, owns_, start_time, end_time=None):
         """Updates an ``owns`` edge with the specified time attributes. If
         the edge does not exist, it is created."""
         return self \
-            .asset(owns_.asset_vid) \
+            .V(owns_.team_vid) \
+            .is_team() \
+            .as_('team_v') \
+            .V(owns_.asset_vid) \
+            .is_asset() \
             .coalesce(
                 # The edge exists.
                 __.inE('owns').filter(
@@ -285,10 +314,17 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.identity().elementMap())
                 .by(__.constant(True)),
                 # The edge does not exist.
-                __.addE('owns').from_(__.V(owns_.team_vid))
+                __.addE('owns').from_('team_v')
                 .property('start_time', start_time)
                 .property('end_time', end_time)
                 .project('edge', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
             )
+
+    def drop_owns(self, eid):
+        """Deletes the ``owns`` edge with id ``eid``."""
+        return self \
+            .owns(eid) \
+            .sideEffect(__.drop()) \
+            .count()
