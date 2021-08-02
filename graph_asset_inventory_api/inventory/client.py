@@ -1,16 +1,25 @@
 """This modules provides the class ``InventoryClient`` that provides access to
 the Asset Inventory."""
 
+from datetime import datetime
+
 from gremlin_python.process.anonymous_traversal import traversal
-from gremlin_python.process.traversal import Order
+from gremlin_python.process.traversal import (
+    T,
+    Order,
+)
 from gremlin_python.driver.driver_remote_connection import (
     DriverRemoteConnection,
 )
 
 from graph_asset_inventory_api.inventory import (
     DbTeam,
+    DbAsset,
+    DbParentOf,
+    DbOwns,
     InventoryError,
     NotFoundError,
+    ConflictError,
     InconsistentStateError,
 )
 from graph_asset_inventory_api.inventory.dsl import (
@@ -34,28 +43,33 @@ class InventoryClient:
         """Returns the graph traversal source."""
         return self._g
 
-    def teams(self):
-        """Returns all the teams."""
-        vteams = self._g.teams().elementMap().toList()
-        teams = [DbTeam.from_vteam(vt) for vt in vteams]
-        return teams
+    # Teams.
 
-    def teams_page(self, page_idx, size):
-        """Returns the page of teams with index ``page_idx`` and size
-        ``size``."""
-        offset = page_idx * size
+    def teams(self, page_idx=None, page_size=100):
+        """Returns all teams if ``page_idx`` is None. Otherwise it returns the
+        page of teams with index ``page_idx`` and size ``page_size``. By
+        default, the page size is 100 items."""
+
         vteams = self._g \
-            .teams() \
-            .order() \
-            .by('identifier', Order.asc) \
-            .range(offset, offset + size) \
+            .teams()
+
+        if page_idx is not None:
+            offset = page_idx * page_size
+            vteams = vteams \
+                .order() \
+                .by(T.id, Order.asc) \
+                .range(offset, offset + page_size)
+
+        vteams = vteams \
             .elementMap() \
             .toList()
+
         teams = [DbTeam.from_vteam(vt) for vt in vteams]
         return teams
 
     def team(self, vid):
-        """Returns the team with vertex ID ``vid``."""
+        """Returns the team with vertex ID ``vid``. If the team does not exist,
+        a ``NotFoundError`` exception is raised."""
         vteams = self._g \
             .team(vid) \
             .elementMap() \
@@ -69,7 +83,8 @@ class InventoryClient:
         return DbTeam.from_vteam(vteams[0])
 
     def team_identifier(self, identifier):
-        """Returns the team with identifier ``identifier``."""
+        """Returns the team with identifier ``identifier``. If the team does
+        not exist, a ``NotFoundError`` exception is raised."""
         vteams = self._g \
             .team_identifier(identifier) \
             .elementMap() \
@@ -83,17 +98,411 @@ class InventoryClient:
         return DbTeam.from_vteam(vteams[0])
 
     def add_team(self, team):
-        """Create a new team. If the team already exists, its name is
-        updated."""
-        vteams = self._g.add_team(team).elementMap().toList()
+        """Create a new team. If the team already exists, a ``ConflictError``
+        exception is raised."""
+        if team.identifier == '':
+            raise ValueError('invalid identifier')
+
+        if team.name == '':
+            raise ValueError('invalid name')
+
+        vteams = self._g.add_team(team).toList()
 
         if len(vteams) == 0:
             raise InventoryError('team was not created')
+        if len(vteams) > 1:
+            raise InconsistentStateError('duplicated team')
+        if vteams[0]['exists']:
+            raise ConflictError(team.identifier)
+
+        return DbTeam.from_vteam(vteams[0]['vertex'])
+
+    def update_team(self, vid, team):
+        """Updates the team with vertex ID ``vid``. If the team does not exist,
+        a ``NotFoundError`` exception is raised."""
+        vteams = self._g.update_team(vid, team).toList()
+
+        if len(vteams) == 0:
+            raise NotFoundError(vid)
         if len(vteams) > 1:
             raise InconsistentStateError('duplicated team')
 
         return DbTeam.from_vteam(vteams[0])
 
     def drop_team(self, vid):
-        """Deletes the team with vertex ID ``vid``."""
+        """Deletes the team with vertex ID ``vid``. If the team does not exist,
+        a ``NotFoundError`` exception is raised."""
+        vteams = self._g \
+            .team(vid) \
+            .toList()
+
+        if len(vteams) == 0:
+            raise NotFoundError(vid)
+        if len(vteams) > 1:
+            raise InconsistentStateError('duplicated team')
+
         self._g.team(vid).drop().iterate()
+
+    # Assets.
+
+    def assets(self, page_idx=None, page_size=100):
+        """Returns all assets if ``page_idx`` is None. Otherwise it returns the
+        page of assets with index ``page_idx`` and size ``page_size``. By
+        default, the page size is 100 items."""
+
+        vassets = self._g \
+            .assets()
+
+        if page_idx is not None:
+            offset = page_idx * page_size
+            vassets = vassets \
+                .order() \
+                .by(T.id, Order.asc) \
+                .range(offset, offset + page_size)
+
+        vassets = vassets \
+            .elementMap() \
+            .toList()
+
+        assets = [DbAsset.from_vasset(va) for va in vassets]
+        return assets
+
+    def asset(self, vid):
+        """Returns the Asset with vertex ID ``vid``. If the asset does not
+        exist, a ``NotFoundError`` exception is raised."""
+        vassets = self._g \
+            .asset(vid) \
+            .elementMap() \
+            .toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(vid)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        return DbAsset.from_vasset(vassets[0])
+
+    def asset_id(self, asset_id):
+        """Returns the asset with id ``asset_id``. If the asset does not exist,
+        a ``NotFoundError`` exception is raised."""
+        vassets = self._g \
+            .asset_id(asset_id) \
+            .elementMap() \
+            .toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(asset_id)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        return DbAsset.from_vasset(vassets[0])
+
+    def add_asset(self, asset, expiration, timestamp=None):
+        """Create a new asset. If the asset already exists, a ``ConflictError``
+        exception is raised. If the timestamp is not provided, UTC now is
+        used."""
+        if asset.asset_id.type == '' or asset.asset_id.identifier == '':
+            raise ValueError('invalid asset_id')
+
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+
+        if expiration < timestamp:
+            raise ValueError('expiration before timestamp')
+
+        vassets = self._g.add_asset(asset, expiration, timestamp).toList()
+
+        if len(vassets) == 0:
+            raise InventoryError('asset was not created')
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+        if vassets[0]['exists']:
+            raise ConflictError(asset.asset_id)
+
+        return DbAsset.from_vasset(vassets[0]['vertex'])
+
+    def update_asset(self, vid, asset, expiration, timestamp=None):
+        """Updates an asset with the specified time attributes. If the asset
+        does not exist, a ``NotFoundError`` exception is raised. If the
+        timestamp is not provided, UTC now is used.
+
+        The time attributes are updated following these rules:
+
+        - If ``timestamp < first_seen``, then ``first_seen = timestamp``.
+        - If ``timestamp > last_seen``, then ``last_seen = timestamp`` and
+          ``expiration = expiration``.
+        - Otherwise, nothing is modified.
+
+        Thus, an asset can be immediately invalidated with
+        ``timestamp = expiration = now()``.
+        """
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+
+        if expiration < timestamp:
+            raise ValueError('expiration before timestamp')
+
+        vassets = self._g.update_asset(
+            vid, asset, expiration, timestamp).toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(vid)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        return DbAsset.from_vasset(vassets[0])
+
+    def set_asset(self, asset, expiration, timestamp=None):
+        """Updates an asset with the specified time attributes. If the asset
+        does not exist, it is created. If the timestamp is not provided,
+        UTC now is used. This function returns a tuple containing the vertex
+        and a boolean that indicates if it already existed
+        ``(DbAsset, bool)``.
+
+        The time attributes are updated following these rules:
+
+        - If ``timestamp < first_seen``, then ``first_seen = timestamp``.
+        - If ``timestamp > last_seen``, then ``last_seen = timestamp`` and
+          ``expiration = expiration``.
+        - Otherwise, nothing is modified.
+
+        Thus, an asset can be immediately invalidated with
+        ``timestamp = expiration = now()``.
+        """
+        if asset.asset_id.type == '' or asset.asset_id.identifier == '':
+            raise ValueError('invalid asset_id')
+
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+
+        if expiration < timestamp:
+            raise ValueError('expiration before timestamp')
+
+        vassets = self._g.set_asset(asset, expiration, timestamp).toList()
+
+        if len(vassets) == 0:
+            raise InventoryError('asset was not updated')
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        return (
+            DbAsset.from_vasset(vassets[0]['vertex']),
+            vassets[0]['exists'],
+        )
+
+    def drop_asset(self, vid):
+        """Deletes the asset with vertex ID ``vid``. If the asset does not
+        exist, a ``NotFoundError`` exception is raised."""
+        vassets = self._g \
+            .asset(vid) \
+            .toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(vid)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        self._g.asset(vid).drop().iterate()
+
+    # Parents.
+
+    def parents(self, asset_vid, page_idx=None, page_size=100):
+        """Returns the list of ``DbParentOf`` of the asset with vertex ID
+        ``asset_vid``. If the asset does not exist, a ``NotFoundError``
+        exception is raised. If ``page_idx`` is None, all the relationships are
+        returned.  Otherwise it returns the page of relationships with index
+        ``page_idx`` and size ``page_size``. By default, the page size is 100
+        items."""
+        vassets = self._g \
+            .asset(asset_vid) \
+            .toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(asset_vid)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        eparents = self._g.parents(asset_vid)
+
+        if page_idx is not None:
+            offset = page_idx * page_size
+            eparents = eparents \
+                .order() \
+                .by(T.id, Order.asc) \
+                .range(offset, offset + page_size)
+
+        eparents = eparents \
+            .elementMap() \
+            .toList()
+
+        dbparents = [DbParentOf.from_eparentof(epo) for epo in eparents]
+        return dbparents
+
+    def set_parent_of(self, parentof, expiration, timestamp=None):
+        """Updates a ``parent_of`` relationship with the specified time
+        attributes. If the relationship does not exist, it is created. If the
+        timestamp is not provided, UTC now is used. This function returns a
+        tuple containing the ``DbParentOf`` and a boolean that indicates if it
+        already existed ``(DbParentOf, bool)``.
+
+        If any of the assets does not exists, a ``NotFoundError`` exception is
+        raised.
+
+        The time attributes are updated following these rules:
+
+        - If ``timestamp < first_seen``, then ``first_seen = timestamp``.
+        - If ``timestamp > last_seen``, then ``last_seen = timestamp`` and
+          ``expiration = expiration``.
+        - Otherwise, nothing is modified.
+
+        Thus, an asset can be immediately invalidated with
+        ``timestamp = expiration = now()``.
+        """
+        if timestamp is None:
+            timestamp = datetime.utcnow()
+
+        # Check that expiration is not before the timestamp.
+        if expiration < timestamp:
+            raise ValueError('expiration before timestamp')
+
+        # Check that child and parent are not the same.
+        if parentof.child_vid == parentof.parent_vid:
+            raise ValueError('child_vid and parent_vid are the same')
+
+        # Check if both vertices exist.
+        vasset_child = self._g \
+            .asset(parentof.child_vid) \
+            .toList()
+        if len(vasset_child) == 0:
+            raise NotFoundError(parentof.child_vid)
+        if len(vasset_child) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        vasset_parent = self._g \
+            .asset(parentof.parent_vid) \
+            .toList()
+        if len(vasset_parent) == 0:
+            raise NotFoundError(parentof.parent_vid)
+        if len(vasset_parent) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        eparentof = self._g \
+            .set_parent_of(parentof, expiration, timestamp) \
+            .toList()
+
+        if len(eparentof) == 0:
+            raise InventoryError('parent_of was not updated')
+        if len(eparentof) > 1:
+            raise InconsistentStateError('duplicated edge')
+
+        return (
+            DbParentOf.from_eparentof(eparentof[0]['edge']),
+            eparentof[0]['exists'],
+        )
+
+    def drop_parent_of(self, eid):
+        """Deletes the ``parent_of`` edge with ID ``eid``. If the edge does not
+        exist, a ``NotFoundError`` exception is raised."""
+        vparentofs = self._g \
+            .parent_of(eid) \
+            .toList()
+
+        if len(vparentofs) == 0:
+            raise NotFoundError(eid)
+        if len(vparentofs) > 1:
+            raise InconsistentStateError('duplicated edge')
+
+        self._g.parent_of(eid).drop().iterate()
+
+    # Owners.
+
+    def owners(self, asset_vid, page_idx=None, page_size=100):
+        """Returns the list of owners (``DbOwns``) of the asset with vertex ID
+        ``asset_vid``.  If the asset does not exist, a ``NotFoundError``
+        exception is raised.  If ``page_idx`` is None, all the relationships
+        are returned.  Otherwise it returns the page of relationships with
+        index ``page_idx`` and size ``page_size``. By default, the page size is
+        100 items."""
+        vassets = self._g \
+            .asset(asset_vid) \
+            .toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(asset_vid)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        eowners = self._g.owners(asset_vid)
+
+        if page_idx is not None:
+            offset = page_idx * page_size
+            eowners = eowners \
+                .order() \
+                .by(T.id, Order.asc) \
+                .range(offset, offset + page_size)
+
+        eowners = eowners \
+            .elementMap() \
+            .toList()
+
+        dbowners = [DbOwns.from_eowns(eo) for eo in eowners]
+        return dbowners
+
+    def set_owns(self, owns, start_time, end_time):
+        """Updates an ``owns`` relationship with the specified time attributes.
+        If the relationship does not exist, it is created. This function
+        returns a tuple containing the ``DbOwns`` and a boolean that indicates
+        if it already existed ``(DbOwns, bool)``.
+
+        If the team or the asset do not exists, a ``NotFoundError`` exception
+        is raised."""
+        # TODO(rm): end_time is optional.
+
+        # Check that expiration is not before the timestamp.
+        if end_time < start_time:
+            raise ValueError('start_time before end_time')
+
+        # Check if both vertices exist.
+        vteam = self._g \
+            .team(owns.team_vid) \
+            .toList()
+        if len(vteam) == 0:
+            raise NotFoundError(owns.team_vid)
+        if len(vteam) > 1:
+            raise InconsistentStateError('duplicated team')
+
+        vasset = self._g \
+            .asset(owns.asset_vid) \
+            .toList()
+        if len(vasset) == 0:
+            raise NotFoundError(owns.asset_vid)
+        if len(vasset) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        eowns = self._g \
+            .set_owns(owns, start_time, end_time) \
+            .toList()
+
+        if len(eowns) == 0:
+            raise InventoryError('owns was not updated')
+        if len(eowns) > 1:
+            raise InconsistentStateError('duplicated edge')
+
+        return (
+            DbOwns.from_eowns(eowns[0]['edge']),
+            eowns[0]['exists'],
+        )
+
+    def drop_owns(self, eid):
+        """Deletes the ``owns`` edge with ID ``eid``. If the edge does not
+        exist, a ``NotFoundError`` exception is raised."""
+        eowns = self._g \
+            .owns(eid) \
+            .toList()
+
+        if len(eowns) == 0:
+            raise NotFoundError(eid)
+        if len(eowns) > 1:
+            raise InconsistentStateError('duplicated edge')
+
+        self._g.owns(eid).drop().iterate()

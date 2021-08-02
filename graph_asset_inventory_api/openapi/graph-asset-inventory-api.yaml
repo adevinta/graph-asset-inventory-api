@@ -36,6 +36,7 @@ paths:
                   $ref: '#/components/schemas/TeamResp'
 
     post:
+      operationId: graph_asset_inventory_api.api.teams.post_teams
       summary: Creates a team.
       tags:
         - Teams
@@ -52,6 +53,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeamResp'
+        '409':
+          description: The team already exists.
 
   /v1/teams/{id}:
     parameters:
@@ -59,8 +62,7 @@ paths:
         name: id
         description: ID of the team.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
@@ -80,6 +82,7 @@ paths:
           description: The team was not found.
 
     put:
+      operationId: graph_asset_inventory_api.api.teams.put_teams_id
       summary: Updates a team.
       tags:
         - Teams
@@ -100,6 +103,7 @@ paths:
           description: The team was not found.
 
     delete:
+      operationId: graph_asset_inventory_api.api.teams.delete_teams_id
       summary: Deletes a team.
       tags:
         - Teams
@@ -112,6 +116,7 @@ paths:
 
   /v1/assets:
     get:
+      operationId: graph_asset_inventory_api.api.assets.get_assets
       summary: Returns the list of assets.
       tags:
         - Assets
@@ -140,6 +145,7 @@ paths:
                   $ref: '#/components/schemas/AssetResp'
 
     post:
+      operationId: graph_asset_inventory_api.api.assets.post_assets
       summary: Creates an asset.
       tags:
         - Assets
@@ -162,6 +168,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AssetResp'
+        '409':
+          description: The asset already exists.
 
   /v1/assets/{id}:
     parameters:
@@ -169,11 +177,11 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
+      operationId: graph_asset_inventory_api.api.assets.get_assets_id
       summary: Returns an asset.
       tags:
         - Assets
@@ -189,6 +197,7 @@ paths:
           description: The asset was not found.
 
     put:
+      operationId: graph_asset_inventory_api.api.assets.put_assets_id
       summary: Updates an asset.
       tags:
         - Assets
@@ -215,6 +224,7 @@ paths:
           description: The asset was not found.
 
     delete:
+      operationId: graph_asset_inventory_api.api.assets.delete_assets_id
       summary: Deletes an asset.
       tags:
         - Assets
@@ -231,8 +241,7 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
@@ -291,15 +300,13 @@ paths:
         name: child_id
         description: ID of the child asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
       - in: path
         name: parent_id
         description: ID of the parent asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     delete:
@@ -319,8 +326,7 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     get:
@@ -379,15 +385,13 @@ paths:
         name: asset_id
         description: ID of the asset.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
       - in: path
         name: team_id
         description: ID of the team.
         schema:
-          type: string
-          format: uuid
+          type: integer
         required: true
 
     delete:
@@ -453,15 +457,18 @@ components:
         - name
 
     TeamResp:
-      allOf:
-        - $ref: '#/components/schemas/TeamReq'
-        - type: object
-          properties:
-            id:
-              type: string
-              format: uuid
-          required:
-            - id
+      type: object
+      properties:
+        id:
+          type: integer
+        identifier:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - identifier
+        - name
 
     # Asset
     AssetTupleID:
@@ -480,55 +487,43 @@ components:
         - $ref: '#/components/schemas/AssetTupleID'
         - type: object
           properties:
+            timestamp:
+              type: string
+              format: date-time
             expiration:
               type: string
               format: date-time
           required:
             - expiration
-        - oneOf:
-            - $ref: '#/components/schemas/AWSAccount'
-            - $ref: '#/components/schemas/Hostname'
-          discriminator:
-            propertyName: type
 
     AssetResp:
       allOf:
-        - $ref: '#/components/schemas/AssetReq'
+        - $ref: '#/components/schemas/AssetTupleID'
         - type: object
           properties:
             id:
-              type: string
-              format: uuid
+              type: integer
             first_seen:
               type: string
               format: date-time
             last_seen:
               type: string
               format: date-time
+            expiration:
+              type: string
+              format: date-time
           required:
             - id
             - first_seen
             - last_seen
-
-    # Asset properties
-    AWSAccount:
-      type: object
-      properties:
-        enabled_aws_regions:
-          type: array
-          items:
-            type: string
-
-    Hostname:
-      type: object
+            - expiration
 
     # Relationships
     ParentOfReq:
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
+        parent_id:
+          type: integer
           description: ID of the parent.
         timestamp:
           type: string
@@ -537,15 +532,17 @@ components:
           type: string
           format: date-time
       required:
-        - id
+        - parent_id
         - expiration
 
     ParentOfResp:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
+          description: ID of the parent_of relationship.
+        parent_id:
+          type: integer
           description: ID of the parent.
         first_seen:
           type: string
@@ -558,6 +555,7 @@ components:
           format: date-time
       required:
         - id
+        - parent_id
         - first_seen
         - last_seen
         - expiration
@@ -566,8 +564,7 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
           description: ID of the team.
         start_time:
           type: string
@@ -583,8 +580,7 @@ components:
       type: object
       properties:
         id:
-          type: string
-          format: uuid
+          type: integer
           description: ID of the team.
         start_time:
           type: string
