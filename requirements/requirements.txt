@@ -2,6 +2,7 @@ Flask==2.0.0
 connexion[swagger-ui]==2.7.0
 gunicorn==20.1.0
 gremlinpython==3.5.1
+boto3==1.18.13
 
 # Enable Connexion's date-time validation. For more information, please see
 # https://github.com/zalando/connexion/issues/476#issuecomment-311928443
@@ -10,3 +11,10 @@ strict-rfc3339==0.7
 # Parse rfc3339 date-time strings. For more information, please see
 # https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
 python-dateutil==2.8.2
+
+# neptune_python_utils dependencies.
+requests==2.26.0
+backoff==1.11.1
+cchardet==2.1.7
+aiodns==3.0.0
+idna-ssl==1.1.0

@@ -37,11 +37,19 @@ def config_logger(debug=False):
     })
 
 
-def config_db(app, neptune_endpoint):
+def config_db(app):
     """Configures the Graph DB."""
+    gremlin_endpoint = os.getenv('GREMLIN_ENDPOINT', None)
+    if gremlin_endpoint is None:
+        raise EnvVarNotSetError('GREMLIN_ENDPOINT')
 
-    app.config['NEPTUNE_ENDPOINT'] = neptune_endpoint
+    app.config['GREMLIN_ENDPOINT'] = gremlin_endpoint
     app.teardown_appcontext(close_inventory_client)
+
+
+def config_auth_mode(app):
+    """Configures the authentication mode."""
+    app.config['GREMLIN_AUTH_MODE'] = os.getenv('GREMLIN_AUTH_MODE', 'none')
 
 
 def create_app():
@@ -49,11 +57,6 @@ def create_app():
     # Get flask environment.
     flask_env = os.getenv('FLASK_ENV', 'production')
     debug = (flask_env == 'development')
-
-    # Get Neptune endpoint.
-    neptune_endpoint = os.getenv('NEPTUNE_ENDPOINT', None)
-    if neptune_endpoint is None:
-        raise EnvVarNotSetError('NEPTUNE_ENDPOINT')
 
     # It is recommended to configure the logger as soon as possible (i.e.
     # before creating the application object).
@@ -70,6 +73,7 @@ def create_app():
         resolver_error=501,
     )
 
-    config_db(conn_app.app, neptune_endpoint)
+    config_db(conn_app.app)
+    config_auth_mode(conn_app.app)
 
     return conn_app

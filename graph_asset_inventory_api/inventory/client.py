@@ -11,9 +11,6 @@ from gremlin_python.process.traversal import (
     T,
     Order,
 )
-from gremlin_python.driver.driver_remote_connection import (
-    DriverRemoteConnection,
-)
 
 from graph_asset_inventory_api.inventory import (
     DbTeam,
@@ -28,6 +25,7 @@ from graph_asset_inventory_api.inventory import (
 from graph_asset_inventory_api.inventory.dsl import (
     InventoryTraversalSource,
 )
+from graph_asset_inventory_api import gremlin
 
 
 class InventoryClient:
@@ -35,8 +33,8 @@ class InventoryClient:
 
     This Client is concurrent-safe in terms of DB integrity."""
 
-    def __init__(self, neptune_endpoint):
-        self._conn = DriverRemoteConnection(neptune_endpoint, 'g')
+    def __init__(self, gremlin_endpoint, auth_mode='none'):
+        self._conn = gremlin.get_connection(gremlin_endpoint, auth_mode)
         self._g = traversal(InventoryTraversalSource).withRemote(self._conn)
 
     def close(self):

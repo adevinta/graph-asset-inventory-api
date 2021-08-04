@@ -7,5 +7,8 @@ PORT=8000
 # Number of gunicorn workers. When run in a "production" environment.
 WEB_CONCURRENCY=4
 
-# Neptune DB endpoint.
-NEPTUNE_ENDPOINT='ws://neptune-endpoint:8182/gremlin'
+# Gremlin endpoint.
+GREMLIN_ENDPOINT='wss://neptune-endpoint:8182/gremlin'
+
+# Use IAM credentials for Gremlin authentication.
+GREMLIN_AUTH_MODE='neptune_iam'

@@ -94,10 +94,11 @@ These are the required environment variables:
 
 | Variable | Description | Example |
 | --- | --- | --- |
-| `FLASK_ENV` | Environment. The value `development` enables debug. | `development` |
+| `FLASK_ENV` | Environment. The value `development` enables debug. Default: `production` | `development` |
 | `PORT` | Listening port of the API. | `8000` |
 | `WEB_CONCURRENCY` | Number of gunicorn workers. | `4` |
-| `NEPTUNE_ENDPOINT` | Neptune's endpoint. | `ws://neptune-endpoint:8182/gremlin` |
+| `GREMLIN_ENDPOINT` | Gremlin server endpoint. | `wss://neptune-endpoint:8182/gremlin` |
+| `GREMLIN_AUTH_MODE` | Gremlin authentication mode. `neptune_iam` and `none` are the only valid values. Default: `none` | `neptune_iam` |
 
 The directory `/env` in this repository contains some example configurations.
 

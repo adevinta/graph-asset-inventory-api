@@ -33,11 +33,12 @@ services:
 
   gremlin-server:
     image: tinkerpop/gremlin-server:3.5.0
+    entrypoint: /opt/gremlin-server/bin/gremlin-server.sh
     command: conf/gremlin-server.yaml
-    environment:
-      gremlinserver.channelizer: org.apache.tinkerpop.gremlin.server.channel.WsAndHttpChannelizer
     expose:
       - "8182"
+    volumes:
+      - ./gremlin-server/conf:/opt/gremlin-server/conf:ro
     healthcheck:
       test: ["CMD", "nc", "-z", "gremlin-server:8182"]
       interval: 5s

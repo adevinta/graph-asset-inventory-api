@@ -1,20 +1,28 @@
+# Builder stage for getting amanzon-neptune-tools.
+FROM python:3.9.6-alpine as builder
+
+RUN apk add git
+
+RUN git clone --depth 1 --branch amazon-neptune-tools-1.4 \
+	https://github.com/awslabs/amazon-neptune-tools /amazon-neptune-tools
+
+
+# Stage for the graph-asset-inventory-api image.
 FROM python:3.9.6-alpine
 
-# Install system dependencies.
-RUN apk add gcc musl-dev
+RUN apk add gcc g++ musl-dev libffi-dev
 
-# Set workdir to /app.
+RUN mkdir -p /app
 WORKDIR /app
 
-# Install Python requirements.
 COPY requirements/requirements.txt .
 RUN pip install -r requirements.txt && rm -f requirements.txt
 
-# Copy service code.
-COPY graph_asset_inventory_api graph_asset_inventory_api
+RUN mkdir -p /deps
+COPY --from=builder \
+	/amazon-neptune-tools/neptune-python-utils/neptune_python_utils \
+	/deps/neptune_python_utils
 
-# Set Python's class path
-ENV PYTHONPATH=/app
+ENV PYTHONPATH="/app:/deps"
 
-# Execute gunicorn as entry point.
 ENTRYPOINT ["gunicorn", "graph_asset_inventory_api.app:create_app()"]

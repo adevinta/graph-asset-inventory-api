@@ -3,13 +3,15 @@
 # pylint: disable=redefined-outer-name
 
 import os
+import uuid
 from datetime import datetime
 
 import pytest
 from gremlin_python.process.anonymous_traversal import traversal
 from gremlin_python.process.graph_traversal import __
-from gremlin_python.driver.driver_remote_connection import (
-    DriverRemoteConnection,
+from gremlin_python.process.traversal import (
+    T,
+    Cardinality,
 )
 
 from graph_asset_inventory_api import EnvVarNotSetError
@@ -27,59 +29,64 @@ from graph_asset_inventory_api.api import (
     ParentOfResp,
     OwnsResp,
 )
+from graph_asset_inventory_api import gremlin
 
 
-def get_neptune_endpoint():
-    """Returns the neptune endpoint got from the environment."""
-    neptune_endpoint = os.getenv('NEPTUNE_ENDPOINT', None)
-    if neptune_endpoint is None:
-        raise EnvVarNotSetError('NEPTUNE_ENDPOINT')
-    return neptune_endpoint
+def get_gremlin_endpoint():
+    """Returns the gremlin endpoint from the environment."""
+    gremlin_endpoint = os.getenv('GREMLIN_ENDPOINT', None)
+    if gremlin_endpoint is None:
+        raise EnvVarNotSetError('GREMLIN_ENDPOINT')
+    return gremlin_endpoint
+
+
+def get_auth_mode():
+    """Returns the auth mode from the environment."""
+    return os.getenv('GREMLIN_AUTH_MODE', 'none')
 
 
 @pytest.fixture
 def g():
     """Returns the graph traversal source. It takes care of closing the gremlin
-    connection after finishing the test. All vertices and edges are deleted on
-    the teardown stage of this fixture."""
-    conn = DriverRemoteConnection(get_neptune_endpoint(), 'g')
+    connection after finishing the test. All vertices are deleted on both
+    the setup and teardown stage of this fixture."""
+    conn = gremlin.get_connection(get_gremlin_endpoint(), get_auth_mode())
     g = traversal().withRemote(conn)
+
+    g.V().drop().iterate()
 
     yield g
 
-    g.E().drop().iterate()
     g.V().drop().iterate()
 
     conn.close()
 
 
 @pytest.fixture
-def cli(g):
+def cli(g):  # pylint: disable=unused-argument
     """Returns an ``InventoryClient``. It takes care of closing the client
-    after finishing the test. All vertices and edges are deleted on
-    the teardown stage of this fixture."""
-    cli = InventoryClient(get_neptune_endpoint())
+    after finishing the test."""
+    cli = InventoryClient(get_gremlin_endpoint(), get_auth_mode())
 
     yield cli
 
     cli.close()
 
-    g.E().drop().iterate()
-    g.V().drop().iterate()
-
 
 @pytest.fixture
-def flask_cli(g):
+def flask_cli(g):  # pylint: disable=unused-argument
     """Returns a flask test client. It takes care of closing the client after
-    finishing the test. All vertices and edges are deleted on the teardown
-    stage of this fixture."""
+    finishing the test."""
     conn_app = create_app()
 
     with conn_app.app.test_client() as flask_cli:
         yield flask_cli
 
-    g.E().drop().iterate()
-    g.V().drop().iterate()
+
+@pytest.fixture
+def unknown_uuid():
+    """Returns a random UUID."""
+    return str(uuid.uuid4())
 
 
 # Teams.
@@ -101,11 +108,14 @@ def init_teams(g):
     created_teams = []
     for team in init_teams:
         vteam = g.addV('Team') \
-            .property('identifier', team[0]) \
-            .property('name', team[1]) \
+            .property(T.id, str(uuid.uuid4())) \
+            .property(Cardinality.single, 'identifier', team[0]) \
+            .property(Cardinality.single, 'name', team[1]) \
             .elementMap() \
             .next()
         created_teams.append(DbTeam.from_vteam(vteam))
+
+    created_teams.sort(key=lambda x: x.vid)
 
     yield created_teams
 
@@ -195,14 +205,17 @@ def init_assets(g):
         last_seen = datetime.fromisoformat(asset[3])
         expiration = datetime.fromisoformat(asset[4])
         vasset = g.addV('Asset') \
-            .property('type', asset_type) \
-            .property('identifier', asset_identifier) \
-            .property('first_seen', first_seen) \
-            .property('last_seen', last_seen) \
-            .property('expiration', expiration) \
+            .property(T.id, str(uuid.uuid4())) \
+            .property(Cardinality.single, 'type', asset_type) \
+            .property(Cardinality.single, 'identifier', asset_identifier) \
+            .property(Cardinality.single, 'first_seen', first_seen) \
+            .property(Cardinality.single, 'last_seen', last_seen) \
+            .property(Cardinality.single, 'expiration', expiration) \
             .elementMap() \
             .next()
         created_assets.append(DbAsset.from_vasset(vasset))
+
+    created_assets.sort(key=lambda x: x.vid)
 
     yield created_assets
 
@@ -287,6 +300,7 @@ def init_parents(g, init_assets):
 
             eparentof = g \
                 .V(parent_vid).addE('parent_of').to(__.V(child_vid)) \
+                .property(T.id, str(uuid.uuid4())) \
                 .property('first_seen', first_seen) \
                 .property('last_seen', last_seen) \
                 .property('expiration', expiration) \
@@ -294,6 +308,8 @@ def init_parents(g, init_assets):
                 .next()
 
             dbparents[child_vid].append(DbParentOf.from_eparentof(eparentof))
+
+        dbparents[child_vid].sort(key=lambda x: x.eid)
 
     yield dbparents
 
@@ -344,12 +360,15 @@ def init_owners(g, init_teams, init_assets):
 
             eowns = g \
                 .V(team_vid).addE('owns').to(__.V(asset_vid)) \
+                .property(T.id, str(uuid.uuid4())) \
                 .property('start_time', start_time) \
                 .property('end_time', end_time) \
                 .elementMap() \
                 .next()
 
             dbowners[asset_vid].append(DbOwns.from_eowns(eowns))
+
+        dbowners[asset_vid].sort(key=lambda x: x.eid)
 
     yield dbowners
 

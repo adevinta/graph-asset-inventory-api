@@ -47,13 +47,13 @@ def test_team(cli, init_teams):
     assert team == init_teams[2]
 
 
-def test_team_not_found_error(cli):
+def test_team_not_found_error(cli, unknown_uuid):
     """Tests the method ``team`` of the class ``InventoryClient`` with an
     unknown ``vid``."""
-    with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
-        cli.team(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.team(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
 
 def test_team_identifier(cli, init_teams):
@@ -125,15 +125,15 @@ def test_update_team(cli, init_teams):
     assert compare_unsorted_list(cli.teams(), final_teams, lambda x: x.vid)
 
 
-def test_update_team_vid_not_found_error(cli, init_teams):
+def test_update_team_vid_not_found_error(cli, init_teams, unknown_uuid):
     """Tests the method ``update_team`` of the class ``InventoryClient`` with
     an unknown ``vid``."""
     team = Team(init_teams[2].identifier, 'name_updated')
 
-    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
-        cli.update_team(13371337, team)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.update_team(unknown_uuid, team)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
     assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
 
@@ -160,13 +160,13 @@ def test_drop_team(cli, init_teams):
     assert compare_unsorted_list(cli.teams(), final_teams, lambda x: x.vid)
 
 
-def test_drop_team_not_found_error(cli, init_teams):
+def test_drop_team_not_found_error(cli, init_teams, unknown_uuid):
     """Tests the method ``drop_team`` of the class ``InventoryClient`` with an
     unknown ``vid``."""
-    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
-        cli.drop_team(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.drop_team(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
     assert compare_unsorted_list(cli.teams(), init_teams, lambda x: x.vid)
 
@@ -201,13 +201,13 @@ def test_asset(cli, init_assets):
     assert asset == init_assets[2]
 
 
-def test_asset_not_found_error(cli):
+def test_asset_not_found_error(cli, unknown_uuid):
     """Tests the method ``asset`` of the class ``InventoryClient`` with an
     unknown ``vid``."""
-    with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
-        cli.asset(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.asset(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
 
 def test_asset_identifier(cli, init_assets):
@@ -237,13 +237,13 @@ def test_drop_asset(cli, init_assets):
     assert compare_unsorted_list(cli.assets(), final_assets, lambda x: x.vid)
 
 
-def test_drop_asset_not_found_error(cli, init_assets):
+def test_drop_asset_not_found_error(cli, init_assets, unknown_uuid):
     """Tests the method ``drop_asset`` of the class ``InventoryClient`` with an
     unknown ``vid``."""
-    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
-        cli.drop_asset(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.drop_asset(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
 
@@ -330,6 +330,9 @@ def test_update_asset_past_timestamp(cli, init_assets):
     updated_asset = cli.update_asset(
         init_assets[2].vid, init_assets[2], expiration, timestamp)
 
+    print(updated_asset.__dict__)
+    print(init_assets[2].__dict__)
+
     assert updated_asset.vid == init_assets[2].vid
     assert updated_asset.asset_id == init_assets[2].asset_id
     assert updated_asset.time_attr.first_seen == timestamp
@@ -357,16 +360,16 @@ def test_update_asset_in_between_timestamp(cli, init_assets):
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
 
 
-def test_update_asset_vid_not_found_error(cli, init_assets):
+def test_update_asset_vid_not_found_error(cli, init_assets, unknown_uuid):
     """Tests the method ``update_asset`` of the class ``InventoryClient`` with
     an unknown ``vid``."""
     timestamp = datetime.fromisoformat('2024-01-01T01:00:00+00:00')
     expiration = datetime.fromisoformat('2024-01-07T01:00:00+00:00')
 
-    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
-        cli.update_asset(13371337, init_assets[2], expiration, timestamp)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.update_asset(unknown_uuid, init_assets[2], expiration, timestamp)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
     assert compare_unsorted_list(cli.assets(), init_assets, lambda x: x.vid)
 
@@ -527,13 +530,13 @@ def test_parents_pagination(cli, init_parents):
         cli.parents(vid, 0, 1000), parents, lambda x: x.eid)
 
 
-def test_parents_not_found_error(cli):
+def test_parents_not_found_error(cli, unknown_uuid):
     """Tests the method ``parents`` of the class ``InventoryClient`` with an
     unknown ``vid``."""
-    with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
-        cli.parents(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.parents(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
 
 def test_set_parent_of(cli, init_parents, init_assets):
@@ -648,11 +651,11 @@ def test_set_parent_of_same_child_parent(cli, init_assets):
     timestamp = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
     expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
-    with pytest.raises(ValueError, match=r'.*same.*'):
+    with pytest.raises(ValueError, match='.*same.*'):
         cli.set_parent_of(parentof, expiration, timestamp)
 
 
-def test_set_parent_of_not_found_error(cli, init_assets):
+def test_set_parent_of_not_found_error(cli, init_assets, unknown_uuid):
     """Tests the method ``set_parent_of`` of the class ``InventoryClient`` with
     unknown vertices."""
     vid = init_assets[0].vid
@@ -661,16 +664,16 @@ def test_set_parent_of_not_found_error(cli, init_assets):
     expiration = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     # Unknown parent_vid.
-    with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
-        cli.set_parent_of(ParentOf(13371337, vid), expiration, timestamp)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.set_parent_of(ParentOf(unknown_uuid, vid), expiration, timestamp)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
     # Unknown child_vid.
-    with pytest.raises(NotFoundError, match=r'.*13381338.*') as exc_info:
-        cli.set_parent_of(ParentOf(vid, 13381338), expiration, timestamp)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.set_parent_of(ParentOf(vid, unknown_uuid), expiration, timestamp)
 
-    assert exc_info.value.name == 13381338
+    assert exc_info.value.name == unknown_uuid
 
 
 def test_drop_parent_of(cli, init_parents):
@@ -685,13 +688,13 @@ def test_drop_parent_of(cli, init_parents):
         cli.parents(vid), final_parents, lambda x: x.eid)
 
 
-def test_drop_parent_of_not_found_error(cli):
+def test_drop_parent_of_not_found_error(cli, unknown_uuid):
     """Tests the method ``drop_parent_of`` of the class ``InventoryClient``
     with an unknown ``eid``."""
-    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
-        cli.drop_parent_of(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.drop_parent_of(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
 
 # Owners.
@@ -720,13 +723,13 @@ def test_owners_pagination(cli, init_owners):
         cli.owners(vid, 0, 1000), owners, lambda x: x.eid)
 
 
-def test_owners_not_found_error(cli):
+def test_owners_not_found_error(cli, unknown_uuid):
     """Tests the method ``owners`` of the class ``InventoryClient`` with an
     unknown ``vid``."""
-    with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
-        cli.owners(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.owners(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
 
 def test_set_owns(cli, init_owners):
@@ -808,7 +811,7 @@ def test_set_owns_missing_end_time(cli, init_owners, init_teams):
         cli.owners(asset_vid), final_owners, lambda x: x.eid)
 
 
-def test_set_owns_not_found_error(cli, init_teams, init_assets):
+def test_set_owns_not_found_error(cli, init_teams, init_assets, unknown_uuid):
     """Tests the method ``set_owns`` of the class ``InventoryClient`` with
     unknown vertices."""
     team_vid = init_teams[0].vid
@@ -818,16 +821,16 @@ def test_set_owns_not_found_error(cli, init_teams, init_assets):
     end_time = datetime.fromisoformat('2022-01-07T01:00:00+00:00')
 
     # Unknown parent_vid.
-    with pytest.raises(NotFoundError, match=r'.*13371337.*') as exc_info:
-        cli.set_owns(Owns(13371337, asset_vid), start_time, end_time)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.set_owns(Owns(unknown_uuid, asset_vid), start_time, end_time)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
     # Unknown child_vid.
-    with pytest.raises(NotFoundError, match=r'.*13381338.*') as exc_info:
-        cli.set_owns(Owns(team_vid, 13381338), start_time, end_time)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.set_owns(Owns(team_vid, unknown_uuid), start_time, end_time)
 
-    assert exc_info.value.name == 13381338
+    assert exc_info.value.name == unknown_uuid
 
 
 def test_drop_owns(cli, init_owners):
@@ -842,13 +845,13 @@ def test_drop_owns(cli, init_owners):
         cli.owners(vid), final_owners, lambda x: x.eid)
 
 
-def test_drop_owns_not_found_error(cli):
+def test_drop_owns_not_found_error(cli, unknown_uuid):
     """Tests the method ``drop_owns`` of the class ``InventoryClient`` with an
     unknown ``eid``."""
-    with pytest.raises(NotFoundError, match='.*13371337.*') as exc_info:
-        cli.drop_owns(13371337)
+    with pytest.raises(NotFoundError, match=f'.*{unknown_uuid}.*') as exc_info:
+        cli.drop_owns(unknown_uuid)
 
-    assert exc_info.value.name == 13371337
+    assert exc_info.value.name == unknown_uuid
 
 
 # Misc.

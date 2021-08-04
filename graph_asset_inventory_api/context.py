@@ -9,10 +9,12 @@ from graph_asset_inventory_api.inventory.client import InventoryClient
 def get_inventory_client():
     """Returns a new ``InventoryClient``."""
     if 'inventory_client' not in g:
-        endpoint = current_app.config['NEPTUNE_ENDPOINT']
-        current_app.logger.debug(f'Creating Inventory Client: {endpoint}')
+        endpoint = current_app.config['GREMLIN_ENDPOINT']
+        auth_mode = current_app.config['GREMLIN_AUTH_MODE']
+        current_app.logger.debug(
+            f'Creating Inventory Client: {endpoint}, Auth mode: {auth_mode}')
         # pylint: disable=assigning-non-slot
-        g.inventory_client = InventoryClient(endpoint)
+        g.inventory_client = InventoryClient(endpoint, auth_mode)
     return g.inventory_client
 
 
