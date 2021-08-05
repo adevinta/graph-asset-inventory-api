@@ -59,7 +59,9 @@ class InventoryTraversal(GraphTraversal):
         ``None``, the property is not set."""
         ret = self.property('start_time', start_time)
 
-        if end_time is not None:
+        if end_time is None:
+            ret = ret.sideEffect(__.properties('end_time').drop())
+        else:
             ret = ret.property('end_time', end_time)
 
         return ret

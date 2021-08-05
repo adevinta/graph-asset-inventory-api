@@ -758,6 +758,31 @@ def test_set_owns(cli, init_owners):
         cli.owners(asset_vid), final_owners, lambda x: x.eid)
 
 
+def test_set_owns_delete_end_time(cli, init_owners):
+    """Tests the method ``set_owns`` of the class ``InventoryClient``."""
+    asset_vid = list(init_owners)[0]
+    owners = init_owners[asset_vid]
+
+    team_vid = owners[1].team_vid
+
+    owns = Owns(team_vid, asset_vid)
+
+    start_time = datetime.fromisoformat('2022-01-01T01:00:00+00:00')
+
+    (updated_owns, exists) = cli.set_owns(owns, start_time, None)
+
+    assert exists
+    assert updated_owns.eid == owners[1].eid
+    assert updated_owns.team_vid == team_vid
+    assert updated_owns.asset_vid == asset_vid
+    assert updated_owns.time_attr.start_time == start_time
+    assert updated_owns.time_attr.end_time is None
+
+    final_owners = owners[:1] + owners[2:] + [updated_owns]
+    assert compare_unsorted_list(
+        cli.owners(asset_vid), final_owners, lambda x: x.eid)
+
+
 def test_set_owns_new(cli, init_owners, init_teams):
     """Tests the method ``set_owns`` of the class ``InventoryClient`` with a
     new relationship."""
