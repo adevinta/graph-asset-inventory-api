@@ -75,6 +75,28 @@ A test coverage report can be generated with the flag `--cov`:
 script/test --cov
 ```
 
+#### Running the test suite against a remote Gremlin server
+
+The test suite can be run against a remote Gremlin server. For instance, an AWS
+Neptune cluster. In order to do so, the following environment variables must be
+set when calling `script/test`:
+
+- `GREMLIN_ENDPOINT`: URL pointing to the target Gremlin server. For instance,
+  `wss://example.cluster.eu-west-1.neptune.amazonaws.com:8182/gremlin`.
+- `GREMLIN_AUTH_MODE`: Gremlin authentication mode. For instance,
+  `neptune_iam`.
+- `DOCKER_EXTRA_HOST`: Docker's extra hosts configuration. This is required if
+  the remote instance must be accessed via port-forwarding. For instance,
+  `example.cluster.eu-west-1.neptune.amazonaws.com:host-gateway`.
+
+In the case of an IAM authenticated Neptune cluster, the following environment
+variables are also required:
+
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_SESSION_TOKEN`
+- `AWS_REGION`
+
 ### Linters
 
 Similar to the local development environment and the test suite, linters are
