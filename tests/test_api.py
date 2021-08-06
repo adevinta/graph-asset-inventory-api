@@ -5,6 +5,9 @@ import json
 
 def test_datetime_validation(flask_cli):
     """Tests the validation of date-time fields."""
+
+    # Wrong format.
+
     asset_req = {
         'type': 'type0',
         'identifier': 'identifier0',
@@ -19,6 +22,20 @@ def test_datetime_validation(flask_cli):
     )
 
     assert resp.status_code == 400
+
+    # Wrong format with small mistake.
+
+    asset_req['timestamp'] = '2021-07-01T01:000:00+00:00'
+
+    resp = flask_cli.post(
+        '/v1/assets',
+        data=json.dumps(asset_req),
+        content_type='application/json',
+    )
+
+    assert resp.status_code == 400
+
+    # Correct format.
 
     asset_req['timestamp'] = '2021-07-01T01:00:00+00:00'
 
