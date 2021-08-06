@@ -31,16 +31,7 @@ def get_connection(gremlin_endpoint, auth_mode='none'):
 
 def get_neptune_iam_connection(neptune_hostname, neptune_port=8182):
     """Returns a Neptune connection using IAM authentication. It expects the
-    environment variable ``AWS_REGION`` to exist. Typically, it is used in the
-    following way:
-
-        from gremlin_python.process.anonymous_traversal import traversal
-        from graph_asset_inventory_api import neptune
-
-        conn = neptune.connect_with_iam(neptune_hostname)
-        g = traversal().withRemote(conn)
-        g.V().limit(10).valueMap().toList()
-    """
+    environment variable ``AWS_REGION`` to exist."""
     aws_region = getenv('AWS_REGION', None)
     if aws_region is None:
         raise EnvVarNotSetError('AWS_REGION')
