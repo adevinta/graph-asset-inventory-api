@@ -1,10 +1,17 @@
 """Gremlin DSL for the Asset Inventory."""
 
+import uuid
+
 from gremlin_python.process.traversal import P
 from gremlin_python.process.graph_traversal import (
     GraphTraversal,
     GraphTraversalSource,
-    __,
+    __ as AnonymousTraversal,
+)
+from gremlin_python.process.traversal import (
+    T,
+    Cardinality,
+    Bytecode,
 )
 
 
@@ -38,14 +45,79 @@ class InventoryTraversal(GraphTraversal):
     # Parents.
 
     def is_parent_of(self):
-        """Filsters edges of type ``parent_of``."""
+        """Filters edges of type ``parent_of``."""
         return self.hasLabel('parent_of')
 
     # Owners.
 
     def is_owns(self):
-        """Filsters edges of type ``owns``."""
+        """Filters edges of type ``owns``."""
         return self.hasLabel('owns')
+
+    def properties_owns(self, start_time, end_time=None):
+        """Sets the properties for edges of type ``owns``. If ``end_time`` is
+        ``None``, the property is not set."""
+        ret = self.property('start_time', start_time)
+
+        if end_time is None:
+            ret = ret.sideEffect(__.properties('end_time').drop())
+        else:
+            ret = ret.property('end_time', end_time)
+
+        return ret
+
+
+class __(AnonymousTraversal):
+    """Anonymous Traversal for the Asset Inventory."""
+
+    graph_traversal = InventoryTraversal
+
+    # Teams.
+
+    @classmethod
+    def is_team(cls, *args):
+        """Filters vertices of type ``Team``."""
+        return cls.graph_traversal(None, None, Bytecode()).is_team(*args)
+
+    @classmethod
+    def is_team_identifier(cls, *args):
+        """Filters vertices of type ``Team`` with a specific ``identifier``."""
+        return cls.graph_traversal(
+            None, None, Bytecode()).is_team_identifier(*args)
+
+    # Assets.
+
+    @classmethod
+    def is_asset(cls, *args):
+        """Filters vertices of type ``Asset``."""
+        return cls.graph_traversal(None, None, Bytecode()).is_asset(*args)
+
+    @classmethod
+    def is_asset_id(cls, *args):
+        """Filters vertices of type ``Asset`` with a specific ``type`` and
+        ``identifier``."""
+        return cls.graph_traversal(None, None, Bytecode()).is_asset_id(*args)
+
+    # Parents.
+
+    @classmethod
+    def is_parent_of(cls, *args):
+        """Filters edges of type ``parent_of``."""
+        return cls.graph_traversal(None, None, Bytecode()).is_parent_of(*args)
+
+    # Owners.
+
+    @classmethod
+    def is_owns(cls, *args):
+        """Filters edges of type ``owns``."""
+        return cls.graph_traversal(None, None, Bytecode()).is_owns(*args)
+
+    @classmethod
+    def properties_owns(cls, *args):
+        """Sets the properties for edges of type ``owns``. If ``end_time`` is
+        ``None``, the property is not set."""
+        return cls.graph_traversal(
+            None, None, Bytecode()).properties_owns(*args)
 
 
 class InventoryTraversalSource(GraphTraversalSource):
@@ -82,8 +154,9 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(True)),
                 # The team does not exist.
                 __.addV('Team')
-                .property('identifier', team.identifier)
-                .property('name', team.name)
+                .property(T.id, str(uuid.uuid4()))
+                .property(Cardinality.single, 'identifier', team.identifier)
+                .property(Cardinality.single, 'name', team.name)
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
@@ -94,7 +167,7 @@ class InventoryTraversalSource(GraphTraversalSource):
         return self \
             .team(vid) \
             .is_team_identifier(team.identifier) \
-            .property('name', team.name) \
+            .property(Cardinality.single, 'name', team.name) \
             .elementMap()
 
     def drop_team(self, vid):
@@ -132,11 +205,16 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(True)),
                 # The asset does not exist.
                 __.addV('Asset')
-                .property('type', asset.asset_id.type)
-                .property('identifier', asset.asset_id.identifier)
-                .property('first_seen', timestamp)
-                .property('last_seen', timestamp)
-                .property('expiration', expiration)
+                .property(T.id, str(uuid.uuid4()))
+                .property(Cardinality.single, 'type', asset.asset_id.type)
+                .property(
+                    Cardinality.single,
+                    'identifier',
+                    asset.asset_id.identifier,
+                )
+                .property(Cardinality.single, 'first_seen', timestamp)
+                .property(Cardinality.single, 'last_seen', timestamp)
+                .property(Cardinality.single, 'expiration', expiration)
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
@@ -156,13 +234,13 @@ class InventoryTraversalSource(GraphTraversalSource):
             .is_asset_id(asset.asset_id) \
             .choose(
                 __.values('first_seen').is_(P.gt(timestamp)),
-                __.property('first_seen', timestamp),
+                __.property(Cardinality.single, 'first_seen', timestamp),
                 __.identity(),
             ) \
             .choose(
                 __.values('last_seen').is_(P.lt(timestamp)),
-                __.property('last_seen', timestamp)
-                  .property('expiration', expiration),
+                __.property(Cardinality.single, 'last_seen', timestamp)
+                  .property(Cardinality.single, 'expiration', expiration),
                 __.identity(),
             ) \
             .elementMap()
@@ -185,13 +263,13 @@ class InventoryTraversalSource(GraphTraversalSource):
                 __.unfold()
                 .choose(
                     __.values('first_seen').is_(P.gt(timestamp)),
-                    __.property('first_seen', timestamp),
+                    __.property(Cardinality.single, 'first_seen', timestamp),
                     __.identity(),
                 )
                 .choose(
                     __.values('last_seen').is_(P.lt(timestamp)),
-                    __.property('last_seen', timestamp)
-                      .property('expiration', expiration),
+                    __.property(Cardinality.single, 'last_seen', timestamp)
+                      .property(Cardinality.single, 'expiration', expiration),
                     __.identity(),
                 )
                 .project('vertex', 'exists')
@@ -199,11 +277,16 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(True)),
                 # The asset does not exist.
                 __.addV('Asset')
-                .property('type', asset.asset_id.type)
-                .property('identifier', asset.asset_id.identifier)
-                .property('first_seen', timestamp)
-                .property('last_seen', timestamp)
-                .property('expiration', expiration)
+                .property(T.id, str(uuid.uuid4()))
+                .property(Cardinality.single, 'type', asset.asset_id.type)
+                .property(
+                    Cardinality.single,
+                    'identifier',
+                    asset.asset_id.identifier,
+                )
+                .property(Cardinality.single, 'first_seen', timestamp)
+                .property(Cardinality.single, 'last_seen', timestamp)
+                .property(Cardinality.single, 'expiration', expiration)
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
@@ -266,6 +349,7 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.constant(True)),
                 # The edge does not exist.
                 __.addE('parent_of').from_('parent_v')
+                .property(T.id, str(uuid.uuid4()))
                 .property('first_seen', timestamp)
                 .property('last_seen', timestamp)
                 .property('expiration', expiration)
@@ -308,15 +392,14 @@ class InventoryTraversalSource(GraphTraversalSource):
                 # The edge exists.
                 __.inE('owns').filter(
                     __.outV().id().is_(owns_.team_vid))
-                .property('start_time', start_time)
-                .property('end_time', end_time)
+                .properties_owns(start_time, end_time)
                 .project('edge', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(True)),
                 # The edge does not exist.
                 __.addE('owns').from_('team_v')
-                .property('start_time', start_time)
-                .property('end_time', end_time)
+                .property(T.id, str(uuid.uuid4()))
+                .properties_owns(start_time, end_time)
                 .project('edge', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),

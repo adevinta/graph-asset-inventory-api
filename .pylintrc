@@ -4,4 +4,4 @@ disable=duplicate-code,too-many-public-methods,too-few-public-methods
 
 [BASIC]
 
-good-names=i, j, k, v, e, g, id, _
+good-names=i, j, k, v, e, g, id, _, __

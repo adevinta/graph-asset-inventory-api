@@ -62,7 +62,8 @@ paths:
         name: id
         description: ID of the team.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
 
     get:
@@ -177,7 +178,8 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
 
     get:
@@ -241,7 +243,8 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
 
     get:
@@ -282,13 +285,15 @@ paths:
         name: child_id
         description: ID of the child asset.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
       - in: path
         name: parent_id
         description: ID of the parent asset.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
 
     put:
@@ -338,7 +343,8 @@ paths:
         name: id
         description: ID of the asset.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
 
     get:
@@ -378,13 +384,15 @@ paths:
         name: asset_id
         description: ID of the asset.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
       - in: path
         name: team_id
         description: ID of the team.
         schema:
-          type: integer
+          type: string
+          format: uuid
         required: true
 
     put:
