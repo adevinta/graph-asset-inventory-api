@@ -12,8 +12,4 @@ rfc3339-validator==0.1.4
 python-dateutil==2.8.2
 
 # neptune_python_utils dependencies.
-requests==2.26.0
 backoff==1.11.1
-cchardet==2.1.7
-aiodns==3.0.0
-idna-ssl==1.1.0
