@@ -7,10 +7,10 @@ set -e -u
 cd "$(dirname $0)/.."
 
 # Set defaults.
-GREMLIN_ENDPOINT=${GREMLIN_ENDPOINT:-'ws://gremlin-server:8182/gremlin'}
-GREMLIN_AUTH_MODE=${GREMLIN_AUTH_MODE:-'none'}
-DOCKER_EXTRA_HOST=${DOCKER_EXTRA_HOST:-'localhost:127.0.0.1'}
-PYTEST_FLAGS=$@
+export GREMLIN_ENDPOINT=${GREMLIN_ENDPOINT:-'ws://gremlin-server:8182/gremlin'}
+export GREMLIN_AUTH_MODE=${GREMLIN_AUTH_MODE:-'none'}
+export DOCKER_EXTRA_HOST=${DOCKER_EXTRA_HOST:-'localhost:127.0.0.1'}
+export PYTEST_FLAGS=$@
 
 echo "Gremlin endpoint: ${GREMLIN_ENDPOINT}"
 echo "Gremlin auth mode: ${GREMLIN_AUTH_MODE}"
@@ -18,10 +18,5 @@ echo "Docker extra host: ${DOCKER_EXTRA_HOST}"
 echo "pytest flags: '${PYTEST_FLAGS}'"
 
 # Run the docker-compose test environment.
-export GREMLIN_ENDPOINT
-export GREMLIN_AUTH_MODE
-export DOCKER_EXTRA_HOST
-export PYTEST_FLAGS
-
 docker-compose -f docker-compose-test.yml -p graph-asset-inventory-api-test \
 	up --remove-orphans --build --exit-code-from inventory-api-test
