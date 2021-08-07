@@ -1,8 +1,8 @@
+# graph_asset_inventory_api dependencies.
 Flask==2.0.0
 connexion[swagger-ui]==2.7.0
 gunicorn==20.1.0
 gremlinpython==3.5.1
-boto3==1.18.13
 
 # Enable jsonschema's date-time validation.
 rfc3339-validator==0.1.4
@@ -12,4 +12,5 @@ rfc3339-validator==0.1.4
 python-dateutil==2.8.2
 
 # neptune_python_utils dependencies.
+boto3==1.18.13
 backoff==1.11.1

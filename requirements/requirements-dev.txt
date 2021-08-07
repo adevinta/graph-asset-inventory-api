@@ -1,4 +1,7 @@
+# Test suite dependencies.
 pytest==6.2.4
 pytest-cov==2.12.1
+
+# Linters.
 pylint==2.9.3
 flake8==3.9.2
