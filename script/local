@@ -6,6 +6,15 @@ set -e -u
 # Set working directory to the root of the repo.
 cd "$(dirname $0)/.."
 
+# Set defaults.
+export GREMLIN_ENDPOINT=${GREMLIN_ENDPOINT:-'ws://gremlin-server:8182/gremlin'}
+export GREMLIN_AUTH_MODE=${GREMLIN_AUTH_MODE:-'none'}
+export DOCKER_EXTRA_HOST=${DOCKER_EXTRA_HOST:-'localhost:127.0.0.1'}
+
+echo "Gremlin endpoint: ${GREMLIN_ENDPOINT}"
+echo "Gremlin auth mode: ${GREMLIN_AUTH_MODE}"
+echo "Docker extra host: ${DOCKER_EXTRA_HOST}"
+
 # Run the docker-compose local environment.
 docker-compose -f docker-compose-local.yml -p graph-asset-inventory-api-local \
 	up --remove-orphans --build

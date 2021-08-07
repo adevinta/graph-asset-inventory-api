@@ -6,6 +6,15 @@ services:
       context: .
       dockerfile: Dockerfile-dev
     env_file: env/dev
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+      - GREMLIN_ENDPOINT
+      - GREMLIN_AUTH_MODE
+    extra_hosts:
+      - "${DOCKER_EXTRA_HOST}"
     ports:
       - "8000:8000"
     volumes:
