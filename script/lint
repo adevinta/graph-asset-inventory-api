@@ -6,6 +6,11 @@ set -e -u
 # Set working directory to the root of the repo.
 cd "$(dirname $0)/.."
 
+# Set defaults.
+export LINTER_PATHS=${@:-'graph_asset_inventory_api tests benches'}
+
+echo "Linter paths: '${LINTER_PATHS}'"
+
 # Run the docker-compose lint environment.
 docker-compose -f docker-compose-lint.yml -p graph-asset-inventory-api-lint \
 	up --remove-orphans --build --exit-code-from inventory-api-lint
