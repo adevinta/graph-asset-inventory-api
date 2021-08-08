@@ -90,7 +90,7 @@ This script will run both [flake8] and [pylint] against the
 
 ### Remote Gremlin servers
 
-Both test suite and the local development environment can be connected to a
+Both the test suite and the local development environment can be connected to a
 remote Gremlin server. For instance, an AWS Neptune cluster. In order to do so,
 the following environment variables must be set when calling `script/local` or
 `script/test`:
