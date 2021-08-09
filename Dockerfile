@@ -12,11 +12,11 @@ FROM python:3.9.6-alpine
 
 RUN apk add gcc g++ musl-dev libffi-dev
 
+COPY requirements/requirements.txt /tmp/
+RUN pip install -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
+
 RUN mkdir -p /app
 WORKDIR /app
-
-COPY requirements/requirements.txt .
-RUN pip install -r requirements.txt && rm -f requirements.txt
 
 RUN mkdir -p /deps
 COPY --from=builder \

@@ -10,8 +10,6 @@ services:
       - .:/app
     entrypoint: ["/bin/sh"]
     command: ["-c", " \
-      echo 'Running flake8...' && \
-      flake8 graph_asset_inventory_api tests && \
-      echo 'Running pylint...' && \
-      pylint graph_asset_inventory_api tests \
+      echo 'Running flake8...' && flake8 ${LINTER_PATHS} && \
+      echo 'Running pylint...' && pylint ${LINTER_PATHS} \
     "]

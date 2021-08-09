@@ -6,6 +6,15 @@ services:
       context: .
       dockerfile: Dockerfile-dev
     env_file: env/dev
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+      - GREMLIN_ENDPOINT
+      - GREMLIN_AUTH_MODE
+    extra_hosts:
+      - "${DOCKER_EXTRA_HOST}"
     ports:
       - "8000:8000"
     volumes:
@@ -18,11 +27,14 @@ services:
     command: ["graph_asset_inventory_api/app.py"]
 
   graph-notebook:
-    # TODO: Replace local image with a public one.
-    # TODO: Modify graph-notebook to accept a port via env var. The env var
-    # "JUPYTER_PORT" was introduced in a version of Jupyter Notebook newer than
-    # the one used by graph-notebook.
-    image: graph-notebook:1.0.0
+    image: adevinta/graph-notebook-docker:v1.0.0
+    environment:
+      - AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY
+      - AWS_SESSION_TOKEN
+      - AWS_REGION
+    extra_hosts:
+      - "${DOCKER_EXTRA_HOST}"
     ports:
       - "8888:8888"
     volumes:
