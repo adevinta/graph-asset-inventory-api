@@ -88,6 +88,30 @@ script/lint
 This script will run both [flake8] and [pylint] against the
 `graph_asset_inventory_api` module and the test suite.
 
+### Benchmarks
+
+In general, you will want to start by creating a Python virtual environment and
+installing the benchmark dependencies.
+
+For instance,
+
+```
+mkdir -p ~/venv
+python3 -m venv ~/venv/graph-asset-inventory-api
+. ~/venv/graph-asset-inventory-api/bin/activate
+pip install -r requirements/requirements-bench.txt
+```
+
+After that, you can run the benchmark. Refer to the specific benchmark help and
+documentation for more details about how to run it.
+
+For instance,
+
+```
+./benches/recon_simulator.py -r 1 -a 20,1000 | \
+  ./benches/assets_bulk_loader.py http://localhost:8000
+```
+
 ### Remote Gremlin servers
 
 Both the test suite and the local development environment can be connected to a
