@@ -19,8 +19,7 @@ jobs:
       name: "lint"
     # "deploy" stage.
     - stage: "deploy"
-      script:
-        - docker build -t "${LOCAL_IMAGE}" .
+      script: docker build -t "${LOCAL_IMAGE}" .
       deploy:
         - provider: script
           script: ./script/cideploy "${LOCAL_IMAGE}" "${RELEASE_IMAGE}"
