@@ -8,7 +8,7 @@ PORT=8000
 WEB_CONCURRENCY=4
 
 # Gremlin endpoint.
-GREMLIN_ENDPOINT='wss://neptune-endpoint:8182/gremlin'
+GREMLIN_ENDPOINT=wss://neptune-endpoint:8182/gremlin
 
 # Use IAM credentials for Gremlin authentication.
-GREMLIN_AUTH_MODE='neptune_iam'
+GREMLIN_AUTH_MODE=neptune_iam
