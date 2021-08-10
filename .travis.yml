@@ -1,0 +1,33 @@
+services:
+  - docker
+
+env:
+  global:
+    - LOCAL_IMAGE="graph-asset-inventory-api:local"
+    - DEV_IMAGE="purpleteam/graph-asset-inventory-api-dev:${TRAVIS_COMMIT}"
+    - RELEASE_IMAGE="adevinta/graph-asset-inventory-api:${TRAVIS_TAG}"
+
+before_install: sudo ./script/cisetup
+
+jobs:
+  include:
+    # "test" stage.
+    - stage: "test"
+      script: ./script/test --cov=graph_asset_inventory_api
+      name: "test"
+    - script: ./script/lint
+      name: "lint"
+    # "deploy" stage.
+    - stage: "deploy"
+      script:
+        - docker build -t "${LOCAL_IMAGE}" .
+      deploy:
+        - provider: script
+          script: ./script/cideploy "${LOCAL_IMAGE}" "${RELEASE_IMAGE}"
+          on:
+            tags: true
+        - provider: script
+          script: ./script/cideploy "${LOCAL_IMAGE}" "${DEV_IMAGE}"
+          on:
+            all_branches: true
+            tags: false
