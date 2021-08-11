@@ -18,6 +18,8 @@ RUN pip install -r /tmp/requirements.txt && rm -f /tmp/requirements.txt
 RUN mkdir -p /app
 WORKDIR /app
 
+COPY graph_asset_inventory_api /app/graph_asset_inventory_api
+
 RUN mkdir -p /deps
 COPY --from=builder \
 	/amazon-neptune-tools/neptune-python-utils/neptune_python_utils \

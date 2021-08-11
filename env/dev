@@ -5,7 +5,7 @@ FLASK_ENV=development
 PORT=8000
 
 # Gremlin endpoint.
-GREMLIN_ENDPOINT='ws://gremlin-server:8182/gremlin'
+GREMLIN_ENDPOINT=ws://gremlin-server:8182/gremlin
 
 # No Gremlin authentication.
-GREMLIN_AUTH_MODE='none'
+GREMLIN_AUTH_MODE=none
