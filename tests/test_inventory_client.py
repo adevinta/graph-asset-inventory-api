@@ -6,6 +6,7 @@ import pytest
 
 from helpers import compare_unsorted_list
 
+from graph_asset_inventory_api.inventory.client import InventoryClient
 from graph_asset_inventory_api.inventory import (
     AssetID,
     Asset,
@@ -15,6 +16,20 @@ from graph_asset_inventory_api.inventory import (
     NotFoundError,
     ConflictError,
 )
+
+
+# Gremlin server connection.
+
+
+def test_wrong_gremlin_endpoint():
+    """Tests that an exception is raised when calling an InventoryClient method
+    after setting an invalid Gremlin endpoint."""
+    cli = InventoryClient('ws://invalid-host:8182/gremlin', 'none')
+
+    with pytest.raises(Exception, match='.*Cannot connect.*'):
+        cli.teams()
+
+    cli.close()
 
 
 # Teams.

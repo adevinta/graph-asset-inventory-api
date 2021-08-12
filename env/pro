@@ -4,7 +4,7 @@ FLASK_ENV=production
 # Set gunicorn listen port.
 PORT=8000
 
-# Number of gunicorn workers. When run in a "production" environment.
+# Number of gunicorn workers.
 WEB_CONCURRENCY=4
 
 # Gremlin endpoint.

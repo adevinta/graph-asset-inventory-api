@@ -2,6 +2,26 @@
 
 import json
 
+from graph_asset_inventory_api.factory import create_app
+
+
+def test_wrong_gremlin_endpoint():
+    """Tests that an HTTP error is returned by the API if the Gremlin endpoint
+    is not valid."""
+    conn_app = create_app()
+
+    # Do not propagate exceptions. We are checking the returned status code, so
+    # the application is the one that should handle the exceptions.
+    conn_app.app.testing = False
+    conn_app.app.debug = False
+
+    # Set an invalid Gremlin endpoint.
+    conn_app.app.config['GREMLIN_ENDPOINT'] = 'ws://invalid-host:8182/gremlin'
+
+    with conn_app.app.test_client() as flask_cli:
+        resp = flask_cli.get('/v1/teams')
+        assert resp.status_code == 500
+
 
 def test_datetime_validation(flask_cli):
     """Tests the validation of date-time fields."""
