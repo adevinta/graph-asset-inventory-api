@@ -144,13 +144,14 @@ class InventoryClient:
 
     # Assets.
 
-    def assets(self, page_idx=None, page_size=100):
-        """Returns all assets if ``page_idx`` is None. Otherwise it returns the
-        page of assets with index ``page_idx`` and size ``page_size``. By
-        default, the page size is 100 items."""
+    def assets(self, page_idx=None, page_size=100, type=None):
+        """Returns all assets (filtered by `type` if any is specified) if
+        ``page_idx`` is None. Otherwise it returns the page of assets with index
+        ``page_idx`` and size ``page_size``. By default, the page size is 100
+        items."""
 
         vassets = self._g \
-            .assets()
+            .assets(type)
 
         if page_idx is not None:
             offset = page_idx * page_size
