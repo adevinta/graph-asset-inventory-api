@@ -217,7 +217,7 @@ def test_assets_type(cli, init_assets):
         asset for asset in init_assets if asset.asset_id.type == 'type0'
     ]
     assert compare_unsorted_list(
-        cli.assets(type='type0'), expected, lambda x: x.vid)
+        cli.assets(asset_type='type0'), expected, lambda x: x.vid)
 
 
 def test_assets_type_pagination(cli, init_assets):
@@ -229,7 +229,7 @@ def test_assets_type_pagination(cli, init_assets):
     expected = expected[:1]
     assert compare_unsorted_list(
         cli.assets(
-            page_idx=0, page_size=1, type='type0'
+            page_idx=0, page_size=1, asset_type='type0'
         ),
         expected, lambda x: x.vid
     )
