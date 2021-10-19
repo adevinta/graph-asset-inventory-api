@@ -135,6 +135,12 @@ paths:
           schema:
             type: integer
           required: false
+        - in: query
+          name: asset_type
+          description: Type of the assets.
+          schema:
+            type: string
+          required: false
       responses:
         '200':
           description: A JSON array of assets.

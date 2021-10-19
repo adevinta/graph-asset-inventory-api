@@ -14,11 +14,11 @@ from graph_asset_inventory_api.inventory import (
 from graph_asset_inventory_api.api import AssetResp
 
 
-def get_assets(page=None, size=100):
+def get_assets(page=None, size=100, asset_type=None):
     """Request handler for the API endpoint ``GET /v1/assets``."""
     cli = get_inventory_client()
 
-    assets = cli.assets(page, size)
+    assets = cli.assets(page, size, asset_type)
 
     resp = [AssetResp.from_dbasset(t).__dict__ for t in assets]
     return resp, 200

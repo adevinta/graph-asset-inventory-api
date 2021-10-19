@@ -179,9 +179,12 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Assets.
 
-    def assets(self):
+    def assets(self, asset_type=None):
         """Returns all the ``Asset`` vertices."""
-        return self.V().is_asset()
+        assets = self.V().is_asset()
+        if asset_type is None:
+            return assets
+        return assets.has('type', asset_type)
 
     def asset(self, vid):
         """Returns an ``Asset`` vertex with a given vertex id ``vid``."""
