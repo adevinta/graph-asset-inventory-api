@@ -14,6 +14,7 @@ from gremlin_python.process.traversal import (
     Cardinality,
 )
 
+from graph_asset_inventory_api.inventory.universe import CurrentUniverse
 from graph_asset_inventory_api import EnvVarNotSetError
 from graph_asset_inventory_api.factory import create_app
 from graph_asset_inventory_api.inventory.client import InventoryClient

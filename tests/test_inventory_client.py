@@ -17,6 +17,7 @@ from graph_asset_inventory_api.inventory import (
     ConflictError,
 )
 
+from graph_asset_inventory_api.inventory.universe import CurrentUniverse
 
 # Gremlin server connection.
 
@@ -24,12 +25,8 @@ from graph_asset_inventory_api.inventory import (
 def test_wrong_gremlin_endpoint():
     """Tests that an exception is raised when calling an InventoryClient method
     after setting an invalid Gremlin endpoint."""
-    cli = InventoryClient('ws://invalid-host:8182/gremlin', 'none')
-
     with pytest.raises(Exception, match='.*Cannot connect.*'):
-        cli.teams()
-
-    cli.close()
+        cli = InventoryClient('ws://invalid-host:8182/gremlin', 'none')
 
 
 # Teams.
@@ -99,6 +96,9 @@ def test_add_team(cli, init_teams):
     final_teams = init_teams + [created_team]
     assert compare_unsorted_list(cli.teams(), final_teams, lambda x: x.vid)
 
+    team_universe = cli.universe_of(created_team.vid)
+    assert team_universe.namespace == CurrentUniverse.namespace
+    assert team_universe.version == CurrentUniverse.version.sem_version
 
 def test_add_team_empty_identifier_name(cli, init_teams):
     """Tests the method ``add_asset`` of the class ``InventoryClient`` with an
@@ -307,6 +307,10 @@ def test_add_asset(cli, init_assets):
 
     final_assets = init_assets + [created_asset]
     assert compare_unsorted_list(cli.assets(), final_assets, lambda x: x.vid)
+
+    asset_universe = cli.universe_of(created_asset.vid)
+    assert asset_universe.namespace == CurrentUniverse.namespace
+    assert asset_universe.version == CurrentUniverse.version.sem_version
 
 
 def test_add_asset_empty_type_identifier(cli, init_assets):
@@ -917,6 +921,18 @@ def test_drop_owns_not_found_error(cli, unknown_uuid):
         cli.drop_owns(unknown_uuid)
 
     assert exc_info.value.name == unknown_uuid
+
+
+# Universe
+
+
+def test_current_universe(cli):
+    """Tests that there is a vertex representing the CurrentUniverse"""
+    universe = cli.current_universe()
+
+    assert universe.namespace == CurrentUniverse.namespace
+    assert universe.version == CurrentUniverse.version.sem_version
+    assert universe.vid == CurrentUniverse.id()
 
 
 # Misc.
