@@ -434,11 +434,8 @@ class InventoryTraversalSource(GraphTraversalSource):
     def ensure_universe(self):
         """Creates a new  asset inventory ``Universe`` vertex, if it doesn't
         exist, and returns its id"""
-        ver = CurrentUniverse.version.int_version
         universe = self \
-        .V() \
-        .has("namespace", CurrentUniverse.namespace) \
-        .has("version", ver) \
+        .V(CurrentUniverse.id()) \
         .fold() \
         .coalesce(
             # The universe vertex already exists.
@@ -449,7 +446,7 @@ class InventoryTraversalSource(GraphTraversalSource):
             __.addV("Universe")
             .property(T.id, CurrentUniverse.id())
             .property(Cardinality.single, 'namespace', CurrentUniverse.namespace)
-            .property(Cardinality.single, 'version', ver)
+            .property(Cardinality.single, 'version', CurrentUniverse.version.int_version)
             .project('id')
             .by(__.id()),
         ) \

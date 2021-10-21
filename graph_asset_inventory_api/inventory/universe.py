@@ -53,7 +53,7 @@ class CurrentUniverse:
 
     @classmethod
     def id(cls):
-        return f"{cls.namespace}@{cls.version}"
+        return f"{cls.namespace}@{cls.version.sem_version}"
 
 
 
@@ -63,5 +63,5 @@ class SemverError(Exception):
 
     def __init__(self):
         super().__init__(
-        "the semver param must have the following shape:\ xx.xx.xx where x is a digit"
+        "the semver param must have the following shape: xx.xx.xx where x is a digit"
         )
