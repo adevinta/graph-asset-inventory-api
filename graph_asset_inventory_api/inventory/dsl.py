@@ -1,6 +1,7 @@
 """Gremlin DSL for the Asset Inventory."""
 
 import uuid
+from graph_asset_inventory_api.inventory import universe
 
 from gremlin_python.process.traversal import P
 from gremlin_python.process.graph_traversal import (
@@ -13,6 +14,7 @@ from gremlin_python.process.traversal import (
     Cardinality,
     Bytecode,
 )
+from graph_asset_inventory_api.inventory.universe import CurrentUniverse
 
 
 class InventoryTraversal(GraphTraversal):
@@ -65,6 +67,16 @@ class InventoryTraversal(GraphTraversal):
             ret = ret.property('end_time', end_time)
 
         return ret
+
+    # Universe
+
+    def link_to_universe(self):
+        """Creates an edge from the vertices in the transversal to the current
+        universe vertex"""
+        return self \
+          .sideEffect( \
+              __.identity().addE("universe").from_(__.V(CurrentUniverse.id())) \
+            )
 
 
 class __(AnonymousTraversal):
@@ -157,6 +169,7 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .property(T.id, str(uuid.uuid4()))
                 .property(Cardinality.single, 'identifier', team.identifier)
                 .property(Cardinality.single, 'name', team.name)
+                .link_to_universe()
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
@@ -218,6 +231,7 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .property(Cardinality.single, 'first_seen', timestamp)
                 .property(Cardinality.single, 'last_seen', timestamp)
                 .property(Cardinality.single, 'expiration', expiration)
+                .link_to_universe()
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
@@ -414,3 +428,48 @@ class InventoryTraversalSource(GraphTraversalSource):
             .owns(eid) \
             .sideEffect(__.drop()) \
             .count()
+
+    # Universe
+
+    def ensure_universe(self):
+        """Creates a new  asset inventory ``Universe`` vertex, if it doesn't
+        exist, and returns its id"""
+        ver = CurrentUniverse.version.int_version
+        universe = self \
+        .V() \
+        .has("namespace", CurrentUniverse.namespace) \
+        .has("version", ver) \
+        .fold() \
+        .coalesce(
+            # The universe vertex already exists.
+            __.unfold()
+            .project('id')
+            .by(__.id()),
+            # The universe vertex does not exist.
+            __.addV("Universe")
+            .property(T.id, CurrentUniverse.id())
+            .property(Cardinality.single, 'namespace', CurrentUniverse.namespace)
+            .property(Cardinality.single, 'version', ver)
+            .project('id')
+            .by(__.id()),
+        ) \
+        .next()
+        return universe["id"]
+
+    def universe_of(self, vid):
+        """Returns a ``Universe`` vertex associated with the vertex identified
+        by the vertex id ``vid``."""
+        ret = self \
+        .V(vid) \
+        .inE() \
+        .hasLabel('universe') \
+        .outV()
+        return ret
+
+
+    def current_universe(self):
+        """Returns the ``Universe`` that corresponds to the CurrentUniverse
+        class"""
+        ret = self \
+        .V(CurrentUniverse.id())
+        return ret
