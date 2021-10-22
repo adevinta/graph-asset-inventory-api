@@ -303,6 +303,7 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .property(Cardinality.single, 'first_seen', timestamp)
                 .property(Cardinality.single, 'last_seen', timestamp)
                 .property(Cardinality.single, 'expiration', expiration)
+                .link_to_universe()
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
