@@ -26,7 +26,7 @@ def test_wrong_gremlin_endpoint():
     """Tests that an exception is raised when calling an InventoryClient method
     after setting an invalid Gremlin endpoint."""
     with pytest.raises(Exception, match='.*Cannot connect.*'):
-        cli = InventoryClient('ws://invalid-host:8182/gremlin', 'none')
+        InventoryClient('ws://invalid-host:8182/gremlin', 'none')
 
 
 # Teams.
@@ -99,6 +99,7 @@ def test_add_team(cli, init_teams):
     team_universe = cli.universe_of(created_team.vid)
     assert team_universe.namespace == CurrentUniverse.namespace
     assert team_universe.version == CurrentUniverse.version.sem_version
+
 
 def test_add_team_empty_identifier_name(cli, init_teams):
     """Tests the method ``add_asset`` of the class ``InventoryClient`` with an

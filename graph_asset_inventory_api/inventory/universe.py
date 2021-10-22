@@ -1,13 +1,16 @@
+"""This modules provides the class ``CurrentUniverse`` that define the
+information about the current version of the asset inventory universe"""
 
 
 class UniverseVersion:
+    """Represents a version of a Universe"""
 
     def __init__(self, version):
         self.int_version = UniverseVersion.__int_version(version)
         self.sem_version = version
 
     @classmethod
-    def __int_version(cls,sem_version):
+    def __int_version(cls, sem_version):
         """Returns the int representation of the universe version used to
         compare two semvers. The semver parameter must have the following
         shape: xx.xx.xx where x is a digit. That is: the major, minor and patch
@@ -44,17 +47,17 @@ class UniverseVersion:
         return cls(sem_version)
 
 
-"""Asset Inventory Universe information"""
-
 class CurrentUniverse:
+    """Asset Inventory Universe information"""
 
     namespace = "asset-inventory"
     version = UniverseVersion("0.0.1")
 
     @classmethod
     def id(cls):
-        return f"{cls.namespace}@{cls.version.sem_version}"
+        """returns the id of the CurrentUniverse"""
 
+        return f"{cls.namespace}@{cls.version.sem_version}"
 
 
 class SemverError(Exception):
@@ -63,5 +66,6 @@ class SemverError(Exception):
 
     def __init__(self):
         super().__init__(
-        "the semver param must have the following shape: xx.xx.xx where x is a digit"
+            "the semver param must have the following shape: xx.xx.xx \
+            where x is a digit"
         )

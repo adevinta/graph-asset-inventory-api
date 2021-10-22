@@ -41,7 +41,6 @@ class InventoryClient:
         self._g = traversal(InventoryTraversalSource).withRemote(self._conn)
         self._g.ensure_universe()
 
-
     def close(self):
         """Releases the resources being used by the client, for instance the
         graph connection."""
@@ -499,15 +498,13 @@ class InventoryClient:
         if nowns > 1:
             raise InconsistentStateError('duplicated edge')
 
-
     # Universe
 
     def universe_of(self, vid):
         """Returns the universe associated with a the team or asset identified
         by ``vid``"""
 
-        universe = self._g.universe_of(vid).elementMap() \
-        .toList()
+        universe = self._g.universe_of(vid).elementMap().toList()
 
         if len(universe) == 0:
             raise NotFoundError(vid)
@@ -515,15 +512,14 @@ class InventoryClient:
             raise InconsistentStateError('duplicated universe')
 
         universe = universe[0]
-        version  = UniverseVersion.from_int_version(universe['version'])
+        version = UniverseVersion.from_int_version(universe['version'])
         universe['version'] = version.sem_version
         return DbUniverse.from_vuniverse(universe)
 
     def current_universe(self):
         """Returns the universe associated with the CurrentUniverse class`"""
 
-        universe = self._g.current_universe().elementMap() \
-        .toList()
+        universe = self._g.current_universe().elementMap().toList()
 
         if len(universe) == 0:
             raise NotFoundError()
@@ -531,6 +527,6 @@ class InventoryClient:
             raise InconsistentStateError('duplicated universe')
 
         universe = universe[0]
-        version  = UniverseVersion.from_int_version(universe['version'])
+        version = UniverseVersion.from_int_version(universe['version'])
         universe['version'] = version.sem_version
         return DbUniverse.from_vuniverse(universe)

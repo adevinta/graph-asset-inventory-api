@@ -222,10 +222,6 @@ class DbAsset(Asset):
         return cls(asset_id, vid, time_attr)
 
 
-        return cls(asset_id, vid, time_attr)
-
-
-
 class ParentOf:
     """Represents a ``parent_of`` relationship."""
 
@@ -393,7 +389,6 @@ class Universe:
     def __init__(self, namespace, version):
         self.version = version
         self.namespace = namespace
-
 
     def __repr__(self):
         return f'{{namespace: {self.namespace}, version: {self.version}}}'

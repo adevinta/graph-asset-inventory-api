@@ -1,7 +1,6 @@
 """Gremlin DSL for the Asset Inventory."""
 
 import uuid
-from graph_asset_inventory_api.inventory import universe
 
 from gremlin_python.process.traversal import P
 from gremlin_python.process.graph_traversal import (
@@ -74,8 +73,8 @@ class InventoryTraversal(GraphTraversal):
         """Creates an edge from the vertices in the transversal to the current
         universe vertex"""
         return self \
-          .sideEffect( \
-              __.identity().addE("universe").from_(__.V(CurrentUniverse.id())) \
+            .sideEffect(
+              __.identity().addE("universe").from_(__.V(CurrentUniverse.id()))
             )
 
 
@@ -435,38 +434,40 @@ class InventoryTraversalSource(GraphTraversalSource):
         """Creates a new  asset inventory ``Universe`` vertex, if it doesn't
         exist, and returns its id"""
         universe = self \
-        .V(CurrentUniverse.id()) \
-        .fold() \
-        .coalesce(
-            # The universe vertex already exists.
-            __.unfold()
-            .project('id')
-            .by(__.id()),
-            # The universe vertex does not exist.
-            __.addV("Universe")
-            .property(T.id, CurrentUniverse.id())
-            .property(Cardinality.single, 'namespace', CurrentUniverse.namespace)
-            .property(Cardinality.single, 'version', CurrentUniverse.version.int_version)
-            .project('id')
-            .by(__.id()),
-        ) \
-        .next()
+            .V(CurrentUniverse.id()) \
+            .fold() \
+            .coalesce(
+                # The universe vertex already exists.
+                __.unfold()
+                .project('id')
+                .by(__.id()),
+                # The universe vertex does not exist.
+                __.addV("Universe")
+                .property(T.id, CurrentUniverse.id())
+                .property(
+                          Cardinality.single, 'namespace',
+                          CurrentUniverse.namespace
+                         )
+                .property(
+                          Cardinality.single, 'version',
+                          CurrentUniverse.version.int_version
+                        )
+                .project('id')
+                .by(__.id()),
+            ).next()
         return universe["id"]
 
     def universe_of(self, vid):
         """Returns a ``Universe`` vertex associated with the vertex identified
         by the vertex id ``vid``."""
         ret = self \
-        .V(vid) \
-        .inE() \
-        .hasLabel('universe') \
-        .outV()
+            .V(vid).inE() \
+            .hasLabel('universe') \
+            .outV()
         return ret
-
 
     def current_universe(self):
         """Returns the ``Universe`` that corresponds to the CurrentUniverse
         class"""
-        ret = self \
-        .V(CurrentUniverse.id())
+        ret = self.V(CurrentUniverse.id())
         return ret
