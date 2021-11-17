@@ -10,6 +10,9 @@ from gremlin_python.process.traversal import (
     Direction,
 )
 
+CURRENT_UNIVERSE_VERSION = "0.0.1"
+"""Defines the current version of the Asset Inventory universe."""
+
 
 class InventoryError(Exception):
     """Represents a generic Asset Inventory error."""
@@ -384,7 +387,7 @@ class DbOwns(Owns):
 
 
 class Universe:
-    """Represents and Asset Inventory Universe instance"""
+    """Represents and Asset Inventory Universe instance."""
 
     def __init__(self, namespace, version):
         self.version = version

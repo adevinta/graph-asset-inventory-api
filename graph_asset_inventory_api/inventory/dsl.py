@@ -13,7 +13,9 @@ from gremlin_python.process.traversal import (
     Cardinality,
     Bytecode,
 )
-from graph_asset_inventory_api.inventory.universe import CurrentUniverse
+
+
+from graph_asset_inventory_api.inventory.universe import CURRENT_UNIVERSE
 
 
 class InventoryTraversal(GraphTraversal):
@@ -29,6 +31,16 @@ class InventoryTraversal(GraphTraversal):
         """Filters vertices of type ``Team`` with a specific ``identifier``."""
         return self.is_team().has('identifier', identifier)
 
+    def add_team(self, team, universe):
+        """Creates a new Team vertex, links it to the current universe and
+        returns the newly created vertex."""
+        return self \
+            .addV('Team') \
+            .property(T.id, str(uuid.uuid4())) \
+            .property(Cardinality.single, 'identifier', team.identifier) \
+            .property(Cardinality.single, 'name', team.name) \
+            .link_to_universe(universe)
+
     # Assets.
 
     def is_asset(self):
@@ -42,6 +54,28 @@ class InventoryTraversal(GraphTraversal):
             .is_asset() \
             .has('type', asset_id.type) \
             .has('identifier', asset_id.identifier)
+
+    def add_asset(
+      self,
+      asset,
+      expiration,
+      timestamp,
+      universe):
+        """Creates a new Asset vertex, links it to the given ``universe`` and
+        returns the newly created vertex."""
+        return self \
+            .addV('Asset') \
+            .property(T.id, str(uuid.uuid4())) \
+            .property(Cardinality.single, 'type', asset.asset_id.type) \
+            .property(
+                    Cardinality.single,
+                    'identifier',
+                    asset.asset_id.identifier,
+            ) \
+            .property(Cardinality.single, 'first_seen', timestamp) \
+            .property(Cardinality.single, 'last_seen', timestamp) \
+            .property(Cardinality.single, 'expiration', expiration) \
+            .link_to_universe(universe)
 
     # Parents.
 
@@ -67,15 +101,42 @@ class InventoryTraversal(GraphTraversal):
 
         return ret
 
-    # Universe
+    # Universe.
 
-    def link_to_universe(self):
+    def link_to_universe(self, universe):
         """Creates an edge from the vertices in the transversal to the current
-        universe vertex"""
+        universe vertex."""
         return self \
             .sideEffect(
-              __.identity().addE("universe").from_(__.V(CurrentUniverse.id()))
+              __.addE("universe_of")
+              .from_(__.V().is_universe_id(universe))
             )
+
+    def is_universe(self):
+        """Filters the vertices that are Universes."""
+        return self \
+            .hasLabel('Universe')
+
+    def is_universe_id(self, universe):
+        """Filters the Asset Inventory Universe with a given version"""
+        return self \
+            .is_universe() \
+            .has('namespace', universe.namespace) \
+            .has('version', universe.version.int_version)
+
+    def universe_of(self):
+        """Returns the ``Universe`` associated with a vertex"""
+        return self \
+            .inE() \
+            .hasLabel('universe_of') \
+            .outV()
+
+    def is_universe_of(self, universe):
+        """Returns the ``Universe`` associated with a vertex only it matches
+        the specified universe"""
+        return self \
+            .universe_of() \
+            .is_universe_id(universe)
 
 
 class __(AnonymousTraversal):
@@ -96,6 +157,13 @@ class __(AnonymousTraversal):
         return cls.graph_traversal(
             None, None, Bytecode()).is_team_identifier(*args)
 
+    @classmethod
+    def add_team(cls, *args):
+        """Creates a new Team vertex, links it to the specified universe and
+        returns the newly created vertex."""
+        return cls.graph_traversal(
+            None, None, Bytecode()).add_team(*args)
+
     # Assets.
 
     @classmethod
@@ -108,6 +176,13 @@ class __(AnonymousTraversal):
         """Filters vertices of type ``Asset`` with a specific ``type`` and
         ``identifier``."""
         return cls.graph_traversal(None, None, Bytecode()).is_asset_id(*args)
+
+    @classmethod
+    def add_asset(cls, *args):
+        """Creates a new Asset vertex, links it to the specified universe and
+        returns the newly created vertex."""
+        return cls.graph_traversal(
+            None, None, Bytecode()).add_asset(*args)
 
     # Parents.
 
@@ -130,6 +205,34 @@ class __(AnonymousTraversal):
         return cls.graph_traversal(
             None, None, Bytecode()).properties_owns(*args)
 
+    # Universe.
+
+    @classmethod
+    def link_to_universe(cls, *args):
+        """Creates an edge from the vertices in the transversal to the current
+        universe vertex."""
+        return cls.graph_traversal(
+            None, None, Bytecode()).link_to_universe(*args)
+
+    @classmethod
+    def is_universe(cls, *args):
+        """Filters the vertices that are Asset Inventory Universes."""
+        return cls.graph_traversal(
+            None, None, Bytecode()).is_universe(*args)
+
+    @classmethod
+    def is_universe_id(cls, *args):
+        """Filters the Asset Inventory Universe with a given version"""
+        return cls.graph_traversal(
+            None, None, Bytecode()).is_universe_id(*args)
+
+    @classmethod
+    def is_universe_of(cls, *args):
+        """Returns the ``Universe`` associated with a vertex only it matches
+        the specified universe"""
+        return cls.graph_traversal(
+            None, None, Bytecode()).is_universe_of(*args)
+
 
 class InventoryTraversalSource(GraphTraversalSource):
     """Graph Traversal Source for the Asset Inventory."""
@@ -140,38 +243,55 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Teams.
 
-    def teams(self):
-        """Returns all the ``Team`` vertices."""
-        return self.V().is_team()
+    def teams(self, universe):
+        """Returns all the ``Team`` vertices belonging to a concrete
+        universe"""
+        return self \
+            .V() \
+            .is_team() \
+            .where(__.is_universe_of(universe))
 
     def team(self, vid):
         """Returns a ``Team`` vertex with a given vertex id ``vid``."""
         return self.V(vid).is_team()
 
-    def team_identifier(self, identifier):
-        """Returns a ``Team`` vertex with a given ``identifier``."""
-        return self.V().is_team_identifier(identifier)
-
-    def add_team(self, team):
-        """Creates a new ``Team`` vertex."""
+    def team_identifier(self, identifier, universe):
+        """Returns a ``Team`` vertex with a given ``identifier`` belonging to a
+        concrete universe"""
         return self \
-            .team_identifier(team.identifier) \
+            .V() \
+            .is_team_identifier(identifier) \
+            .where(__.is_universe_of(universe))
+
+    def add_team(self, team, universe):
+        """Creates a new ``Team`` vertex and links it the specified
+        ``universe``"""
+        return self \
+            .team_identifier(team.identifier, universe) \
             .fold() \
             .coalesce(
                 # The team exists.
                 __.unfold()
-                .project('vertex', 'exists')
+                .choose(
+                    __.is_universe_of(universe),
+                    # The team exists and is linked to the universe.
+                    __.project('vertex', 'exists')
+                    .by(__.identity().elementMap())
+                    .by(__.constant(True)),
+                    # Even though the team exists, it is not linked to the
+                    # universe so we create a new team and link it to
+                    # the proper universe.
+                    __.add_team(team, universe)
+                    .project('vertex', 'exists')
+                    .by(__.identity().elementMap())
+                    .by(__.constant(False)),
+                ),
+                # The team does not exist in any universe.
+                __.add_team(team, universe)
+                .project('vertex', 'exists', "status")
                 .by(__.identity().elementMap())
-                .by(__.constant(True)),
-                # The team does not exist.
-                __.addV('Team')
-                .property(T.id, str(uuid.uuid4()))
-                .property(Cardinality.single, 'identifier', team.identifier)
-                .property(Cardinality.single, 'name', team.name)
-                .link_to_universe()
-                .project('vertex', 'exists')
-                .by(__.identity().elementMap())
-                .by(__.constant(False)),
+                .by(__.constant(False))
+                .by(__.constant("does not exists")),
             )
 
     def update_team(self, vid, team):
@@ -191,9 +311,13 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Assets.
 
-    def assets(self, asset_type=None):
-        """Returns all the ``Asset`` vertices."""
-        assets = self.V().is_asset()
+    def assets(self, asset_type=None, universe=CURRENT_UNIVERSE):
+        """Returns all the ``Asset`` vertices that belong to the current
+        ``Universe``"""
+        assets = self \
+            .V() \
+            .is_asset() \
+            .where(__.is_universe_of(universe))
         if asset_type is None:
             return assets
         return assets.has('type', asset_type)
@@ -202,12 +326,20 @@ class InventoryTraversalSource(GraphTraversalSource):
         """Returns an ``Asset`` vertex with a given vertex id ``vid``."""
         return self.V(vid).is_asset()
 
-    def asset_id(self, asset_id):
-        """Returns an ``Asset`` vertex with a given ``type`` and
-        ``identifier``."""
-        return self.V().is_asset_id(asset_id)
+    def asset_id(self, asset_id, universe=CURRENT_UNIVERSE):
+        """Returns an ``Asset`` vertex with a given ``type`` and ``identifier``
+        if it exists and it's associated the with the given ``universe``."""
+        return self \
+            .V() \
+            .is_asset_id(asset_id) \
+            .where(__.is_universe_of(universe))
 
-    def add_asset(self, asset, expiration, timestamp):
+    def add_asset(
+      self,
+      asset,
+      expiration,
+      timestamp,
+      universe):
         """Creates a new ``Asset`` vertex."""
         return self \
             .asset_id(asset.asset_id) \
@@ -215,22 +347,22 @@ class InventoryTraversalSource(GraphTraversalSource):
             .coalesce(
                 # The asset exists.
                 __.unfold()
-                .project('vertex', 'exists')
-                .by(__.identity().elementMap())
-                .by(__.constant(True)),
-                # The asset does not exist.
-                __.addV('Asset')
-                .property(T.id, str(uuid.uuid4()))
-                .property(Cardinality.single, 'type', asset.asset_id.type)
-                .property(
-                    Cardinality.single,
-                    'identifier',
-                    asset.asset_id.identifier,
-                )
-                .property(Cardinality.single, 'first_seen', timestamp)
-                .property(Cardinality.single, 'last_seen', timestamp)
-                .property(Cardinality.single, 'expiration', expiration)
-                .link_to_universe()
+                .choose(
+                    __.is_universe_of(universe),
+                    # The Asset exists and is linked to the universe.
+                    __.project('vertex', 'exists')
+                    .by(__.identity().elementMap())
+                    .by(__.constant(True)),
+                    # Even though the asset exists, it is not linked to the
+                    # universe so we create a new asset and link it to the
+                    # proper universe.
+                    __.add_asset(asset, expiration, timestamp, universe)
+                    .project('vertex', 'exists')
+                    .by(__.identity().elementMap())
+                    .by(__.constant(False)),
+                ),
+                # The asset does not exist in any universe.
+                __.add_asset(asset, expiration, timestamp, universe)
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
@@ -261,9 +393,15 @@ class InventoryTraversalSource(GraphTraversalSource):
             ) \
             .elementMap()
 
-    def set_asset(self, asset, expiration, timestamp):
+    def set_asset(
+      self,
+      asset,
+      expiration,
+      timestamp,
+      universe):
         """Updates an ``Asset`` vertex with the specified time attributes. If
-        the vertex does not exist, it is created.
+        the vertex does not exist or it's not associated with the given
+        universe, it is created.
 
         The time attributes are updated following these rules:
 
@@ -272,7 +410,7 @@ class InventoryTraversalSource(GraphTraversalSource):
           ``expiration = expiration``.
         - Otherwise, nothing is modified."""
         return self \
-            .asset_id(asset.asset_id) \
+            .asset_id(asset.asset_id, universe) \
             .fold() \
             .coalesce(
                 # The asset exists.
@@ -303,7 +441,7 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .property(Cardinality.single, 'first_seen', timestamp)
                 .property(Cardinality.single, 'last_seen', timestamp)
                 .property(Cardinality.single, 'expiration', expiration)
-                .link_to_universe()
+                .link_to_universe(universe)
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False)),
@@ -431,11 +569,12 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Universe
 
-    def ensure_universe(self):
+    def ensure_universe(self, universe=CURRENT_UNIVERSE):
         """Creates a new  asset inventory ``Universe`` vertex, if it doesn't
-        exist, and returns its id"""
-        universe = self \
-            .V(CurrentUniverse.id()) \
+        exist, and returns its id."""
+        return self \
+            .V() \
+            .is_universe_id(universe) \
             .fold() \
             .coalesce(
                 # The universe vertex already exists.
@@ -444,31 +583,32 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .by(__.id()),
                 # The universe vertex does not exist.
                 __.addV("Universe")
-                .property(T.id, CurrentUniverse.id())
+                .property(T.id, str(uuid.uuid4()))
                 .property(
                           Cardinality.single, 'namespace',
-                          CurrentUniverse.namespace
+                          universe.namespace
                          )
                 .property(
                           Cardinality.single, 'version',
-                          CurrentUniverse.version.int_version
+                          universe.version.int_version
                         )
                 .project('id')
                 .by(__.id()),
-            ).next()
-        return universe["id"]
+            )
 
     def universe_of(self, vid):
         """Returns a ``Universe`` vertex associated with the vertex identified
         by the vertex id ``vid``."""
         ret = self \
-            .V(vid).inE() \
-            .hasLabel('universe') \
+            .V(vid) \
+            .inE() \
+            .hasLabel('universe_of') \
             .outV()
         return ret
 
-    def current_universe(self):
-        """Returns the ``Universe`` that corresponds to the CurrentUniverse
-        class"""
-        ret = self.V(CurrentUniverse.id())
-        return ret
+    def universe(self, universe):
+        """Returns the ``Universe`` vertex that corresponds to specified
+        universe class."""
+        return self\
+            .V() \
+            .is_universe_id(universe)

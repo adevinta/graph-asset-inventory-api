@@ -17,6 +17,12 @@ from gremlin_python.process.traversal import (
 from graph_asset_inventory_api import EnvVarNotSetError
 from graph_asset_inventory_api.factory import create_app
 from graph_asset_inventory_api.inventory.client import InventoryClient
+from graph_asset_inventory_api.inventory.dsl import InventoryTraversalSource
+from graph_asset_inventory_api.inventory.universe import (
+    CURRENT_UNIVERSE,
+    Universe,
+    UniverseVersion,
+)
 from graph_asset_inventory_api.inventory import (
     DbTeam,
     DbAsset,
@@ -51,7 +57,7 @@ def g():
     connection after finishing the test. All vertices are deleted on both
     the setup and teardown stage of this fixture."""
     conn = gremlin.get_connection(get_gremlin_endpoint(), get_auth_mode())
-    g = traversal().withRemote(conn)
+    g = traversal(InventoryTraversalSource).withRemote(conn)
 
     g.V().drop().iterate()
 
@@ -67,7 +73,7 @@ def cli(g):  # pylint: disable=unused-argument
     """Returns an ``InventoryClient``. It takes care of closing the client
     after finishing the test."""
     cli = InventoryClient(get_gremlin_endpoint(), get_auth_mode())
-
+    cli.ensure_universe()
     yield cli
 
     cli.close()
@@ -78,7 +84,6 @@ def flask_cli(g):  # pylint: disable=unused-argument
     """Returns a flask test client. It takes care of closing the client after
     finishing the test."""
     conn_app = create_app()
-
     with conn_app.app.test_client() as flask_cli:
         yield flask_cli
 
@@ -103,7 +108,6 @@ def init_teams(g):
         ('identifier3', 'name3'),
         ('identifier4', 'name4'),
     ]
-
     # Add teams.
     created_teams = []
     for team in init_teams:
@@ -111,6 +115,15 @@ def init_teams(g):
             .property(T.id, str(uuid.uuid4())) \
             .property(Cardinality.single, 'identifier', team[0]) \
             .property(Cardinality.single, 'name', team[1]) \
+            .sideEffect(
+                __.addE("universe_of")
+                .from_(
+                    __.V()
+                    .hasLabel('Universe')
+                    .has('namespace', CURRENT_UNIVERSE.namespace)
+                    .has('version', CURRENT_UNIVERSE.version.int_version)
+                )
+            ) \
             .elementMap() \
             .next()
         created_teams.append(DbTeam.from_vteam(vteam))
@@ -118,6 +131,59 @@ def init_teams(g):
     created_teams.sort(key=lambda x: x.vid)
 
     yield created_teams
+
+
+@pytest.fixture
+def old_universe():
+    """Creates a universe with version 0.0.1 so it can be used in tests as a
+    universe older than the current one.``."""
+    yield Universe(
+        UniverseVersion.from_int_version(
+          CURRENT_UNIVERSE.version.int_version + 1
+        )
+    )
+
+
+@pytest.fixture
+def init_old_universe_teams(g, old_universe):
+    """Creates an initial set of teams and yields a ``DbTeam`` list. They can
+    be used to test the ``InventoryClient``."""
+    init_teams = [
+        ('identifier0', 'name0'),
+        ('identifier1', 'name1'),
+        ('identifier2', 'name2'),
+        ('identifier3', 'name3'),
+    ]
+    g.ensure_universe(universe=old_universe).next()
+    # Add teams.
+    created_teams = []
+    for team in init_teams:
+        vteam = g.addV('Team') \
+            .property(T.id, str(uuid.uuid4())) \
+            .property(Cardinality.single, 'identifier', team[0]) \
+            .property(Cardinality.single, 'name', team[1]) \
+            .sideEffect(
+                __.addE("universe_of")
+                .from_(
+                    __.V()
+                    .hasLabel('Universe')
+                    .has('namespace', old_universe.namespace)
+                    .has('version', old_universe.version.int_version)
+                )
+            ) \
+            .elementMap() \
+            .next()
+        created_teams.append(DbTeam.from_vteam(vteam))
+
+    created_teams.sort(key=lambda x: x.vid)
+
+    yield created_teams
+
+
+@pytest.fixture
+def team_not_in_old_universe(init_teams):
+    """Returns a team that does not exists in the old universe."""
+    return init_teams[4]
 
 
 @pytest.fixture
@@ -195,6 +261,59 @@ def init_assets(g):
             '2021-07-14T01:00:00+00:00',
         ),
     ]
+    # Add assets.
+    created_assets = []
+    for asset in assets:
+        asset_type = asset[0]
+        asset_identifier = asset[1]
+        first_seen = datetime.fromisoformat(asset[2])
+        last_seen = datetime.fromisoformat(asset[3])
+        expiration = datetime.fromisoformat(asset[4])
+        vasset = g.addV('Asset') \
+            .property(T.id, str(uuid.uuid4())) \
+            .property(Cardinality.single, 'type', asset_type) \
+            .property(Cardinality.single, 'identifier', asset_identifier) \
+            .property(Cardinality.single, 'first_seen', first_seen) \
+            .property(Cardinality.single, 'last_seen', last_seen) \
+            .property(Cardinality.single, 'expiration', expiration) \
+            .sideEffect(
+                __.addE("universe_of")
+                .from_(
+                    __.V()
+                    .hasLabel('Universe')
+                    .has('namespace', CURRENT_UNIVERSE.namespace)
+                    .has('version', CURRENT_UNIVERSE.version.int_version)
+                )
+            ) \
+            .elementMap() \
+            .next()
+        created_assets.append(DbAsset.from_vasset(vasset))
+
+    created_assets.sort(key=lambda x: x.vid)
+
+    yield created_assets
+
+
+@pytest.fixture
+def init_old_universe_assets(g, old_universe):
+    """Creates an initial set of assets and yields a ``DbAsset`` list.  They
+    can be used to test the ``InventoryClient``."""
+    # (type, identifier, first_seen, last_seen, expiration)
+    assets = [
+        (
+            'type0', 'identifier0',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
+        (
+            'type0', 'identifier1',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        )
+    ]
+    g.ensure_universe(universe=old_universe).next()
 
     # Add assets.
     created_assets = []
@@ -211,6 +330,15 @@ def init_assets(g):
             .property(Cardinality.single, 'first_seen', first_seen) \
             .property(Cardinality.single, 'last_seen', last_seen) \
             .property(Cardinality.single, 'expiration', expiration) \
+            .sideEffect(
+                __.addE("universe_of")
+                .from_(
+                    __.V()
+                    .hasLabel('Universe')
+                    .has('namespace', old_universe.namespace)
+                    .has('version', old_universe.version.int_version)
+                )
+            ) \
             .elementMap() \
             .next()
         created_assets.append(DbAsset.from_vasset(vasset))

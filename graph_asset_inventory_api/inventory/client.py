@@ -22,13 +22,15 @@ from graph_asset_inventory_api.inventory import (
     NotFoundError,
     ConflictError,
     InconsistentStateError,
-
 )
 from graph_asset_inventory_api.inventory.dsl import (
     InventoryTraversalSource,
 )
 from graph_asset_inventory_api import gremlin
-from graph_asset_inventory_api.inventory.universe import UniverseVersion
+from graph_asset_inventory_api.inventory.universe import (
+    CURRENT_UNIVERSE,
+    UniverseVersion,
+)
 
 
 class InventoryClient:
@@ -39,7 +41,6 @@ class InventoryClient:
     def __init__(self, gremlin_endpoint, auth_mode='none'):
         self._conn = gremlin.get_connection(gremlin_endpoint, auth_mode)
         self._g = traversal(InventoryTraversalSource).withRemote(self._conn)
-        self._g.ensure_universe()
 
     def close(self):
         """Releases the resources being used by the client, for instance the
@@ -52,13 +53,14 @@ class InventoryClient:
 
     # Teams.
 
-    def teams(self, page_idx=None, page_size=100):
-        """Returns all teams if ``page_idx`` is None. Otherwise it returns the
-        page of teams with index ``page_idx`` and size ``page_size``. By
-        default, the page size is 100 items."""
+    def teams(self, page_idx=None, page_size=100, universe=CURRENT_UNIVERSE):
+        """Returns all teams associated with the given ``universe``, if
+        ``page_idx`` is None. Otherwise it returns the page of teams with index
+        ``page_idx`` and size ``page_size``. By default, the page size is 100
+        items."""
 
         vteams = self._g \
-            .teams()
+            .teams(universe)
 
         if page_idx is not None:
             offset = page_idx * page_size
@@ -89,11 +91,12 @@ class InventoryClient:
 
         return DbTeam.from_vteam(vteams[0])
 
-    def team_identifier(self, identifier):
-        """Returns the team with identifier ``identifier``. If the team does
-        not exist, a ``NotFoundError`` exception is raised."""
+    def team_identifier(self, identifier, universe=CURRENT_UNIVERSE):
+        """Returns the team with identifier ``identifier`` of the specified
+        ``universe``. If the team does not exist, a ``NotFoundError`` exception
+        is raised."""
         vteams = self._g \
-            .team_identifier(identifier) \
+            .team_identifier(identifier, universe) \
             .elementMap() \
             .toList()
 
@@ -104,17 +107,16 @@ class InventoryClient:
 
         return DbTeam.from_vteam(vteams[0])
 
-    def add_team(self, team):
-        """Create a new team. If the team already exists, a ``ConflictError``
-        exception is raised."""
+    def add_team(self, team, universe=CURRENT_UNIVERSE):
+        """Create a new team associated to the specified ``universe``. If the
+        team already exists, a ``ConflictError`` exception is raised."""
         if team.identifier == '':
             raise ValueError('empty team identifier')
 
         if team.name == '':
             raise ValueError('empty team name')
 
-        vteams = self._g.add_team(team).toList()
-
+        vteams = self._g.add_team(team, universe).toList()
         if len(vteams) == 0:
             raise InventoryError('team was not created')
         if len(vteams) > 1:
@@ -148,14 +150,19 @@ class InventoryClient:
 
     # Assets.
 
-    def assets(self, page_idx=None, page_size=100, asset_type=None):
-        """Returns all assets (filtered by `type` if any is specified) if
-        ``page_idx`` is None. Otherwise it returns the page of assets with
-        index ``page_idx`` and size ``page_size``. By default, the page size is
-        100 items."""
+    def assets(
+      self,
+      page_idx=None,
+      page_size=100,
+      asset_type=None,
+      universe=CURRENT_UNIVERSE):
+        """Returns all the assets belonging to the specified
+        ``universe``(filtered by `type` if any is specified) if ``page_idx`` is
+        None. Otherwise it returns the page of assets with index ``page_idx``
+        and size ``page_size``. By default, the page size is 100 items."""
 
         vassets = self._g \
-            .assets(asset_type)
+            .assets(asset_type, universe)
 
         if page_idx is not None:
             offset = page_idx * page_size
@@ -186,11 +193,13 @@ class InventoryClient:
 
         return DbAsset.from_vasset(vassets[0])
 
-    def asset_id(self, asset_id):
-        """Returns the asset with id ``asset_id``. If the asset does not exist,
-        a ``NotFoundError`` exception is raised."""
+    def asset_id(self, asset_id, universe=CURRENT_UNIVERSE):
+        """Returns the asset with id ``asset_id`` that is linked to the given
+        ``universe``. If the asset does not exist, or it exists but it's not
+        linked to the given ``universe``, a ``NotFoundError`` exception is
+        raised."""
         vassets = self._g \
-            .asset_id(asset_id) \
+            .asset_id(asset_id, universe=universe) \
             .elementMap() \
             .toList()
 
@@ -201,10 +210,15 @@ class InventoryClient:
 
         return DbAsset.from_vasset(vassets[0])
 
-    def add_asset(self, asset, expiration, timestamp=None):
-        """Create a new asset. If the asset already exists, a ``ConflictError``
-        exception is raised. If the timestamp is not provided, UTC now is
-        used."""
+    def add_asset(
+      self,
+      asset,
+      expiration,
+      timestamp=None,
+      universe=CURRENT_UNIVERSE):
+        """Create a new asset linking it to the specified ``universe``. If the
+        asset already exists, a ``ConflictError`` exception is raised. If the
+        timestamp is not provided, UTC now is used."""
         if asset.asset_id.type == '' or asset.asset_id.identifier == '':
             raise ValueError('empty asset type or identifier')
 
@@ -214,7 +228,13 @@ class InventoryClient:
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
 
-        vassets = self._g.add_asset(asset, expiration, timestamp).toList()
+        vassets = self._g.add_asset(
+            asset,
+            expiration,
+            timestamp,
+            universe
+            ) \
+            .toList()
 
         if len(vassets) == 0:
             raise InventoryError('asset was not created')
@@ -256,12 +276,18 @@ class InventoryClient:
 
         return DbAsset.from_vasset(vassets[0])
 
-    def set_asset(self, asset, expiration, timestamp=None):
-        """Updates an asset with the specified time attributes. If the asset
-        does not exist, it is created. If the timestamp is not provided,
-        UTC now is used. This function returns a tuple containing the vertex
-        and a boolean that indicates if it already existed
-        ``(DbAsset, bool)``.
+    def set_asset(
+      self,
+      asset,
+      expiration,
+      timestamp=None,
+      universe=CURRENT_UNIVERSE):
+        """Updates an asset with the specified time attributes that is
+        associated with the specified ``universe``. If the asset does not exist
+        or is not assciated with the universe, it is created. If the timestamp
+        is not provided, UTC now is used. This function returns a tuple
+        containing the vertex and a boolean that indicates if it already
+        existed ``(DbAsset, bool)``.
 
         The time attributes are updated following these rules:
 
@@ -282,7 +308,13 @@ class InventoryClient:
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
 
-        vassets = self._g.set_asset(asset, expiration, timestamp).toList()
+        vassets = self._g.set_asset(
+            asset,
+            expiration,
+            timestamp,
+            universe
+            ) \
+            .toList()
 
         if len(vassets) == 0:
             raise InventoryError('asset was not updated')
@@ -502,7 +534,7 @@ class InventoryClient:
 
     def universe_of(self, vid):
         """Returns the universe associated with a the team or asset identified
-        by ``vid``"""
+        by ``vid``."""
 
         universe = self._g.universe_of(vid).elementMap().toList()
 
@@ -517,9 +549,10 @@ class InventoryClient:
         return DbUniverse.from_vuniverse(universe)
 
     def current_universe(self):
-        """Returns the universe associated with the CurrentUniverse class`"""
+        """Returns the universe associated with the ``CURRENT_UNIVERSE``
+        constant."""
 
-        universe = self._g.current_universe().elementMap().toList()
+        universe = self._g.universe(CURRENT_UNIVERSE).elementMap().toList()
 
         if len(universe) == 0:
             raise NotFoundError()
@@ -530,3 +563,8 @@ class InventoryClient:
         version = UniverseVersion.from_int_version(universe['version'])
         universe['version'] = version.sem_version
         return DbUniverse.from_vuniverse(universe)
+
+    def ensure_universe(self, universe=CURRENT_UNIVERSE):
+        """Ensure that there is vertex for the specified ``universe``."""
+
+        self._g.ensure_universe(universe).next()

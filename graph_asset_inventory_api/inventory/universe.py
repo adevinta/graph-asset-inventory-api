@@ -1,25 +1,40 @@
-"""This modules provides the class ``CurrentUniverse`` that define the
-information about the current version of the asset inventory universe"""
+"""This modules provides the class ``CURRENT_UNIVERSE`` that defines the
+information about the current version of the asset inventory universe."""
+
+
+from graph_asset_inventory_api.inventory import CURRENT_UNIVERSE_VERSION
 
 
 class UniverseVersion:
-    """Represents a version of a Universe"""
+    """Represents a version of a Universe."""
 
     def __init__(self, version):
-        self.int_version = UniverseVersion.__int_version(version)
-        self.sem_version = version
+        """Inits UniverseVersion with a version string. The version parameter
+        must be a string with the following shape: x.x.x, where x is an
+        interger between 0 and 99."""
+        self._int_version = UniverseVersion._version_to_int(version)
+        self._sem_version = version
+
+    @property
+    def int_version(self):
+        """Returns the interger representation of the version"""
+        return self._int_version
+
+    @property
+    def sem_version(self):
+        """Returns the string representation of the version"""
+        return self._sem_version
 
     @classmethod
-    def __int_version(cls, sem_version):
-        """Returns the int representation of the universe version used to
-        compare two semvers. The semver parameter must have the following
-        shape: xx.xx.xx where x is a digit. That is: the major, minor and patch
-        parts must be composed only by digits, and must be values from 0 to
-        99"""
+    def _version_to_int(cls, version):
+        """Returns the integer representation of the universe version used to
+        compare two different versions of a universe. The version parameter
+        must have the following shape: x.x.x, where x is an integer between 0
+        and 99."""
 
-        if sem_version == "":
+        if version == "":
             raise SemverError()
-        parts = sem_version.split(".")
+        parts = version.split(".")
 
         if len(parts) != 3:
             raise SemverError()
@@ -28,44 +43,42 @@ class UniverseVersion:
         for i, part in enumerate(parts):
             if len(part) > 2 or not part.isdigit():
                 raise SemverError()
-            int_semver = int_semver + 10 ** i * int(part)
+            int_semver = int_semver + 100 ** i * int(part)
         return int_semver
 
     @classmethod
     def from_int_version(cls, version):
         """Given a integer representing a semver returns the corresponding
         UniverseVersion"""
-        patch = version % 10
-        remainder = version // 10
+        patch = version % 100
+        remainder = version // 100
 
-        minor = remainder % 10
-        remainder = remainder // 10
+        minor = remainder % 100
+        remainder = remainder // 100
 
-        major = remainder % 10
+        major = remainder % 100
 
         sem_version = f"{major}.{minor}.{patch}"
         return cls(sem_version)
 
 
-class CurrentUniverse:
-    """Asset Inventory Universe information"""
-
-    namespace = "asset-inventory"
-    version = UniverseVersion("0.0.1")
-
-    @classmethod
-    def id(cls):
-        """returns the id of the CurrentUniverse"""
-
-        return f"{cls.namespace}@{cls.version.sem_version}"
-
-
 class SemverError(Exception):
-    """Returned by the semver_to_in function when the semver paramter does not
-    comply with the expected shape."""
+    """Returned when creating an instance of the UniverseVersion class if the
+    passed version parameter does not comply with the expected shape."""
 
     def __init__(self):
         super().__init__(
             "the semver param must have the following shape: xx.xx.xx \
             where x is a digit"
         )
+
+
+class Universe:
+    """Asset Inventory Universe"""
+
+    def __init__(self, version):
+        self.namespace = "asset-inventory"
+        self.version = version
+
+
+CURRENT_UNIVERSE = Universe(UniverseVersion(CURRENT_UNIVERSE_VERSION))
