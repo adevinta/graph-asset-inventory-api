@@ -124,7 +124,7 @@ class InventoryTraversal(GraphTraversal):
             .has('version', universe.version.int_version)
 
     def linked_universe(self):
-        """Returns the ``Universe``associated with a vertex."""
+        """Returns the ``Universe`` associated with a vertex."""
         return self \
             .inE() \
             .is_universe_of() \

@@ -399,7 +399,7 @@ class InventoryUniverse:
 
     def __init__(self, namespace, version):
         self.namespace = namespace
-        self.version = UniverseVersion.from_int_version(version)
+        self.version = version
 
     def __repr__(self):
         version = self.version.sem_version
@@ -454,4 +454,5 @@ class DbUniverse(InventoryUniverse):
         namespace = vuniverse['namespace']
         version = vuniverse['version']
         vid = vuniverse[T.id]
-        return cls(namespace, version, vid)
+        universe_version = UniverseVersion.from_int_version(version)
+        return cls(namespace, universe_version, vid)
