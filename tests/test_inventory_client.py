@@ -177,7 +177,7 @@ def test_add_team_empty_identifier_name(cli, init_teams):
 
 
 def test_add_team_conflict_error(cli, init_teams):
-    """Test the method ``add_team`` of the class ``InventoryClient`` with an
+    """Tests the method ``add_team`` of the class ``InventoryClient`` with an
     already existing team in the current universe."""
     identifier = init_teams[2].identifier
     team = Team(identifier, 'new_name')
@@ -436,7 +436,7 @@ def test_add_asset_current_universe(cli, init_assets):
     next_version = UniverseVersion.from_int_version(
         CURRENT_UNIVERSE.version.int_version + 1
     )
-    new_universe_version = CURRENT_UNIVERSE.version
+    tmp = CURRENT_UNIVERSE.version
     CURRENT_UNIVERSE.version = next_version
     cli.g().ensure_universe(CURRENT_UNIVERSE).next()
     timestamp = datetime.fromisoformat('2022-02-01T01:00:00+00:00')
@@ -456,9 +456,9 @@ def test_add_asset_current_universe(cli, init_assets):
     assert asset_universe.version.sem_version == \
         CURRENT_UNIVERSE.version.sem_version
 
-    # Restote the current universe version, so it doesn't interfere with the
+    # Restore the current universe version, so it doesn't interfere with the
     # other tests.
-    CURRENT_UNIVERSE.version = new_universe_version
+    CURRENT_UNIVERSE.version = tmp
 
 
 def test_add_asset_empty_type_identifier(cli, init_assets):

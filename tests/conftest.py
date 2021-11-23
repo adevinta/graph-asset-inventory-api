@@ -144,7 +144,7 @@ def init_teams(g):
 @pytest.fixture
 def new_universe():
     """Creates a universe with a newer version so it can be used in tests as a
-    universe newer than the current one.``."""
+    universe newer than the current one."""
     yield Universe(
         UniverseVersion.from_int_version(
           CURRENT_UNIVERSE.version.int_version + 1
@@ -523,15 +523,18 @@ def init_api_owners(init_owners):
 
 
 def create_universe(g, universe):
-    """Creates a new  asset inventory ``Universe`` vertex"""
+    """Creates a new  asset inventory ``Universe`` vertex."""
     return g \
         .addV("Universe") \
         .property(T.id, str(uuid.uuid4())) \
         .property(
-                    Cardinality.single, 'namespace',
-                    universe.namespace
-                ) \
+                Cardinality.single,
+                'namespace',
+                universe.namespace
+        ) \
         .property(
-                    Cardinality.single, 'version',
-                    universe.version.int_version
-        ).next()
+                Cardinality.single,
+                'version',
+                universe.version.int_version
+        ) \
+        .next()

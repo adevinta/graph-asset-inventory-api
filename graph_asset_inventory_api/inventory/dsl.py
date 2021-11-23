@@ -301,7 +301,6 @@ class InventoryTraversalSource(GraphTraversalSource):
                 .project('vertex', 'exists')
                 .by(__.identity().elementMap())
                 .by(__.constant(False))
-                .by(__.constant("does not exists")),
             )
 
     def update_team(self, vid, team):
@@ -322,7 +321,7 @@ class InventoryTraversalSource(GraphTraversalSource):
     # Assets.
 
     def assets(self, universe, asset_type=None):
-        """Returns all the ``Asset`` vertices that belong to a ``Universe``"""
+        """Returns all the ``Asset`` vertices that belong to a ``Universe``."""
         assets = self \
             .V() \
             .is_asset() \
@@ -596,14 +595,14 @@ class InventoryTraversalSource(GraphTraversalSource):
                 __.addV("Universe")
                 .property(T.id, str(uuid.uuid4()))
                 .property(
-                          Cardinality.single,
-                          'namespace',
-                          universe.namespace
+                    Cardinality.single,
+                    'namespace',
+                    universe.namespace
                 )
                 .property(
-                          Cardinality.single,
-                          'version',
-                          universe.version.int_version
+                    Cardinality.single,
+                    'version',
+                    universe.version.int_version
                 )
                 .elementMap(),
             )
