@@ -160,7 +160,7 @@ class InventoryClient:
         and size ``page_size``. By default, the page size is 100 items."""
 
         vassets = self._g \
-            .assets(asset_type, universe)
+            .assets(universe, asset_type)
 
         if page_idx is not None:
             offset = page_idx * page_size

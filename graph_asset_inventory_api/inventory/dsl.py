@@ -321,7 +321,7 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Assets.
 
-    def assets(self, asset_type=None, universe=None):
+    def assets(self, universe, asset_type=None):
         """Returns all the ``Asset`` vertices that belong to a ``Universe``"""
         assets = self \
             .V() \
@@ -335,7 +335,7 @@ class InventoryTraversalSource(GraphTraversalSource):
         """Returns an ``Asset`` vertex with a given vertex id ``vid``."""
         return self.V(vid).is_asset()
 
-    def asset_id(self, asset_id, universe=None):
+    def asset_id(self, asset_id, universe):
         """Returns an ``Asset`` vertex with a given ``type`` and ``identifier``
         if it exists and it's associated the with the given ``universe``."""
         return self \
@@ -581,7 +581,7 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Universe
 
-    def ensure_universe(self, universe=None):
+    def ensure_universe(self, universe):
         """Creates a new  asset inventory ``Universe`` vertex, if it doesn't
         exist, and returns its id."""
         return self \
