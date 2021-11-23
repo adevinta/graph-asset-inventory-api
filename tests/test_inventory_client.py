@@ -1,4 +1,5 @@
 """Tests for the class ``InventoryClient``."""
+
 # pylint: disable=too-many-lines
 
 from datetime import datetime
@@ -15,11 +16,11 @@ from graph_asset_inventory_api.inventory import (
     ParentOf,
     Owns,
     NotFoundError,
-    ConflictError
+    ConflictError,
+    CURRENT_UNIVERSE
 )
 
 from graph_asset_inventory_api.inventory.universe import (
-    CURRENT_UNIVERSE,
     UniverseVersion,
     Universe,
 )
@@ -91,14 +92,14 @@ def test_team_identifier(cli, init_teams):
     assert team == init_teams[2]
 
 
-def test_team_identifier_universe(cli, old_universe, init_old_universe_teams):
+def test_team_identifier_universe(cli, new_universe, init_new_universe_teams):
     """Tests the method ``team_identifier`` of the class
     ``InventoryClient`` when a universe is specified."""
     team = cli.team_identifier(
-          init_old_universe_teams[2].identifier,
-          old_universe
-          )
-    assert team == init_old_universe_teams[2]
+        init_new_universe_teams[2].identifier,
+        new_universe
+    )
+    assert team == init_new_universe_teams[2]
 
 
 def test_team_identifier_not_found_error(cli):
@@ -111,14 +112,15 @@ def test_team_identifier_not_found_error(cli):
 
 
 def test_team_identifier_not_found_error_universe(
-  cli,
-  team_not_in_old_universe,
-  old_universe):
+    cli,
+    team_not_in_current_universe,
+    new_universe
+):
     """Tests the method ``team_identifier`` of the class ``InventoryClient``
     when the identifier exits but is not linked to the given universe."""
-    identifier = team_not_in_old_universe.identifier
+    identifier = team_not_in_current_universe.identifier
     with pytest.raises(NotFoundError, match=f".*{identifier}.*") as exc_info:
-        cli.team_identifier(identifier, old_universe)
+        cli.team_identifier(identifier, new_universe)
 
     assert exc_info.value.name == identifier
 
@@ -135,9 +137,10 @@ def test_add_team(cli, init_teams):
     final_teams = init_teams + [created_team]
     assert compare_unsorted_list(cli.teams(), final_teams, lambda x: x.vid)
 
-    team_universe = cli.universe_of(created_team.vid)
+    team_universe = cli.linked_universe(created_team.vid)
     assert team_universe.namespace == CURRENT_UNIVERSE.namespace
-    assert team_universe.version == CURRENT_UNIVERSE.version.sem_version
+    assert team_universe.version.sem_version \
+        == CURRENT_UNIVERSE.version.sem_version
 
 
 def test_add_team_universe(cli, init_teams):
@@ -146,7 +149,7 @@ def test_add_team_universe(cli, init_teams):
     # Bump the current universe version and add the Team again.
     next_version = UniverseVersion.from_int_version(
         CURRENT_UNIVERSE.version.int_version + 1
-        )
+    )
     universe = Universe(next_version)
     cli.g().ensure_universe(universe=universe).next()
     identifier = init_teams[3].identifier
@@ -156,9 +159,9 @@ def test_add_team_universe(cli, init_teams):
     assert created_team.identifier == team.identifier
     assert created_team.name == team.name
 
-    team_universe = cli.universe_of(created_team.vid)
+    team_universe = cli.linked_universe(created_team.vid)
     assert team_universe.namespace == universe.namespace
-    assert team_universe.version == universe.version.sem_version
+    assert team_universe.version.sem_version == universe.version.sem_version
 
 
 def test_add_team_empty_identifier_name(cli, init_teams):
@@ -174,7 +177,7 @@ def test_add_team_empty_identifier_name(cli, init_teams):
 
 
 def test_add_team_conflict_error(cli, init_teams):
-    """Tests the method ``add_team`` of the class ``InventoryClient`` with an
+    """Test the method ``add_team`` of the class ``InventoryClient`` with an
     already existing team in the current universe."""
     identifier = init_teams[2].identifier
     team = Team(identifier, 'new_name')
@@ -188,22 +191,23 @@ def test_add_team_conflict_error(cli, init_teams):
 
 
 def test_add_team_conflict_error_universe(
-  cli,
-  old_universe,
-  init_old_universe_teams):
+    cli,
+    new_universe,
+    init_new_universe_teams
+):
     """Tests the method ``add_team`` of the class ``InventoryClient`` with an
     already existing team in the given ``universe``."""
-    identifier = init_old_universe_teams[2].identifier
+    identifier = init_new_universe_teams[2].identifier
     team = Team(identifier, 'new_name')
 
     with pytest.raises(ConflictError, match=f'.*{identifier}.*') as exc_info:
-        cli.add_team(team, old_universe)
+        cli.add_team(team, new_universe)
 
     assert exc_info.value.name == identifier
 
     assert compare_unsorted_list(
-        cli.teams(universe=old_universe),
-        init_old_universe_teams,
+        cli.teams(universe=new_universe),
+        init_new_universe_teams,
         lambda x: x.vid
     )
 
@@ -277,13 +281,13 @@ def test_assets(cli, init_assets):
     assert compare_unsorted_list(assets, init_assets, lambda x: x.vid)
 
 
-def test_assets_universe(cli, old_universe, init_old_universe_assets):
+def test_assets_universe(cli, new_universe, init_new_universe_assets):
     """Tests the method ``assets`` of the class ``InventoryClient`` when a
     universe is specified."""
-    assets = cli.assets(universe=old_universe)
+    assets = cli.assets(universe=new_universe)
     assert compare_unsorted_list(
         assets,
-        init_old_universe_assets,
+        init_new_universe_assets,
         lambda x: x.vid)
 
 
@@ -351,18 +355,19 @@ def test_asset_identifier(cli, init_assets):
 
 
 def test_asset_identifier_universe(
-        cli,
-        old_universe,
-        init_old_universe_assets):
+    cli,
+    new_universe,
+    init_new_universe_assets
+):
     """Tests the method ``asset_id`` of the class ``InventoryClient`` for a
     given universe."""
 
     asset_id = AssetID(
-        init_old_universe_assets[1].asset_id.type,
-        init_old_universe_assets[1].asset_id.identifier
+        init_new_universe_assets[1].asset_id.type,
+        init_new_universe_assets[1].asset_id.identifier
     )
-    asset = cli.asset_id(asset_id, universe=old_universe)
-    assert asset == init_old_universe_assets[1]
+    asset = cli.asset_id(asset_id, universe=new_universe)
+    assert asset == init_new_universe_assets[1]
 
 
 def test_asset_id_not_found_error(cli):
@@ -415,23 +420,25 @@ def test_add_asset(cli, init_assets):
     final_assets = init_assets + [created_asset]
     assert compare_unsorted_list(cli.assets(), final_assets, lambda x: x.vid)
 
-    asset_universe = cli.universe_of(created_asset.vid)
+    asset_universe = cli.linked_universe(created_asset.vid)
     assert asset_universe.namespace == CURRENT_UNIVERSE.namespace
-    assert asset_universe.version == CURRENT_UNIVERSE.version.sem_version
+    assert asset_universe.version.sem_version == \
+        CURRENT_UNIVERSE.version.sem_version
 
 
-def test_add_asset_old_universe(cli, init_assets):
-    """Tests the method ``add_asset`` of the class ``InventoryClient``, when the
-    asset already exits but it's linked to an old version of the Universe"""
+def test_add_asset_current_universe(cli, init_assets):
+    """Tests the method ``add_asset`` of the class ``InventoryClient``, when
+    the asset already exits but it's linked to an old version of the
+    Universe."""
     asset_id = init_assets[0].asset_id
     asset = Asset(asset_id)
     # Bump the current universe version and add an existing asset again.
     next_version = UniverseVersion.from_int_version(
         CURRENT_UNIVERSE.version.int_version + 1
-        )
-    old_universe_version = CURRENT_UNIVERSE.version
+    )
+    new_universe_version = CURRENT_UNIVERSE.version
     CURRENT_UNIVERSE.version = next_version
-    cli.g().ensure_universe().next()
+    cli.g().ensure_universe(CURRENT_UNIVERSE).next()
     timestamp = datetime.fromisoformat('2022-02-01T01:00:00+00:00')
     expiration = datetime.fromisoformat('2022-02-07T01:00:00+00:00')
 
@@ -444,13 +451,14 @@ def test_add_asset_old_universe(cli, init_assets):
     assert created_asset.time_attr.last_seen == timestamp
     assert created_asset.time_attr.expiration == expiration
 
-    asset_universe = cli.universe_of(created_asset.vid)
+    asset_universe = cli.linked_universe(created_asset.vid)
     assert asset_universe.namespace == CURRENT_UNIVERSE.namespace
-    assert asset_universe.version == CURRENT_UNIVERSE.version.sem_version
+    assert asset_universe.version.sem_version == \
+        CURRENT_UNIVERSE.version.sem_version
 
     # Restote the current universe version, so it doesn't interfere with the
     # other tests.
-    CURRENT_UNIVERSE.version = old_universe_version
+    CURRENT_UNIVERSE.version = new_universe_version
 
 
 def test_add_asset_empty_type_identifier(cli, init_assets):
@@ -1071,7 +1079,7 @@ def test_current_universe(cli):
     universe = cli.current_universe()
 
     assert universe.namespace == CURRENT_UNIVERSE.namespace
-    assert universe.version == CURRENT_UNIVERSE.version.sem_version
+    assert universe.version.sem_version == CURRENT_UNIVERSE.version.sem_version
 
 # Misc.
 

@@ -55,7 +55,7 @@ def config_auth_mode(app):
 
 
 def initialize_db(app):
-    """Executes the actions that needs to be performed in the graph before
+    """Executes the actions that have to be performed in the graph before
     accessing it."""
     endpoint = app.config['GREMLIN_ENDPOINT']
     auth_mode = app.config['GREMLIN_AUTH_MODE']

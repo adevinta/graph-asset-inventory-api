@@ -27,10 +27,7 @@ from graph_asset_inventory_api.inventory.dsl import (
     InventoryTraversalSource,
 )
 from graph_asset_inventory_api import gremlin
-from graph_asset_inventory_api.inventory.universe import (
-    CURRENT_UNIVERSE,
-    UniverseVersion,
-)
+from graph_asset_inventory_api.inventory import CURRENT_UNIVERSE
 
 
 class InventoryClient:
@@ -151,11 +148,12 @@ class InventoryClient:
     # Assets.
 
     def assets(
-      self,
-      page_idx=None,
-      page_size=100,
-      asset_type=None,
-      universe=CURRENT_UNIVERSE):
+        self,
+        page_idx=None,
+        page_size=100,
+        asset_type=None,
+        universe=CURRENT_UNIVERSE
+    ):
         """Returns all the assets belonging to the specified
         ``universe``(filtered by `type` if any is specified) if ``page_idx`` is
         None. Otherwise it returns the page of assets with index ``page_idx``
@@ -211,11 +209,12 @@ class InventoryClient:
         return DbAsset.from_vasset(vassets[0])
 
     def add_asset(
-      self,
-      asset,
-      expiration,
-      timestamp=None,
-      universe=CURRENT_UNIVERSE):
+         self,
+         asset,
+         expiration,
+         timestamp=None,
+         universe=CURRENT_UNIVERSE
+    ):
         """Create a new asset linking it to the specified ``universe``. If the
         asset already exists, a ``ConflictError`` exception is raised. If the
         timestamp is not provided, UTC now is used."""
@@ -228,11 +227,12 @@ class InventoryClient:
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
 
-        vassets = self._g.add_asset(
-            asset,
-            expiration,
-            timestamp,
-            universe
+        vassets = self._g \
+            .add_asset(
+                asset,
+                expiration,
+                timestamp,
+                universe
             ) \
             .toList()
 
@@ -277,17 +277,18 @@ class InventoryClient:
         return DbAsset.from_vasset(vassets[0])
 
     def set_asset(
-      self,
-      asset,
-      expiration,
-      timestamp=None,
-      universe=CURRENT_UNIVERSE):
-        """Updates an asset with the specified time attributes that is
-        associated with the specified ``universe``. If the asset does not exist
-        or is not assciated with the universe, it is created. If the timestamp
-        is not provided, UTC now is used. This function returns a tuple
-        containing the vertex and a boolean that indicates if it already
-        existed ``(DbAsset, bool)``.
+        self,
+        asset,
+        expiration,
+        timestamp=None,
+        universe=CURRENT_UNIVERSE
+    ):
+        """Updates an asset linked with the specified ``universe`` with the
+        specified time attributes. If the asset does not exist or is not
+        assciated with the universe, it is created. If the timestamp is not
+        provided, UTC now is used. This function returns a tuple containing the
+        vertex and a boolean that indicates if it already existed ``(DbAsset,
+        bool)``.
 
         The time attributes are updated following these rules:
 
@@ -308,11 +309,12 @@ class InventoryClient:
         if expiration < timestamp:
             raise ValueError('expiration before timestamp')
 
-        vassets = self._g.set_asset(
-            asset,
-            expiration,
-            timestamp,
-            universe
+        vassets = self._g. \
+            set_asset(
+                asset,
+                expiration,
+                timestamp,
+                universe
             ) \
             .toList()
 
@@ -530,13 +532,13 @@ class InventoryClient:
         if nowns > 1:
             raise InconsistentStateError('duplicated edge')
 
-    # Universe
+    # Universe.
 
-    def universe_of(self, vid):
+    def linked_universe(self, vid):
         """Returns the universe associated with a the team or asset identified
         by ``vid``."""
 
-        universe = self._g.universe_of(vid).elementMap().toList()
+        universe = self._g.linked_universe(vid).elementMap().toList()
 
         if len(universe) == 0:
             raise NotFoundError(vid)
@@ -544,8 +546,6 @@ class InventoryClient:
             raise InconsistentStateError('duplicated universe')
 
         universe = universe[0]
-        version = UniverseVersion.from_int_version(universe['version'])
-        universe['version'] = version.sem_version
         return DbUniverse.from_vuniverse(universe)
 
     def current_universe(self):
@@ -560,11 +560,9 @@ class InventoryClient:
             raise InconsistentStateError('duplicated universe')
 
         universe = universe[0]
-        version = UniverseVersion.from_int_version(universe['version'])
-        universe['version'] = version.sem_version
         return DbUniverse.from_vuniverse(universe)
 
     def ensure_universe(self, universe=CURRENT_UNIVERSE):
-        """Ensure that there is vertex for the specified ``universe``."""
+        """Ensure that there is a vertex for the specified ``universe``."""
 
         self._g.ensure_universe(universe).next()

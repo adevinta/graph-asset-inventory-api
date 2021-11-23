@@ -1,35 +1,31 @@
-"""This modules provides the class ``CURRENT_UNIVERSE`` that defines the
-information about the current version of the asset inventory universe."""
-
-
-from graph_asset_inventory_api.inventory import CURRENT_UNIVERSE_VERSION
+"""This modules provides the classes needed to handle Universes."""
 
 
 class UniverseVersion:
     """Represents a version of a Universe."""
 
     def __init__(self, version):
-        """Inits UniverseVersion with a version string. The version parameter
-        must be a string with the following shape: x.x.x, where x is an
-        interger between 0 and 99."""
+        """Initializes ``UniverseVersion`` with a version string. The version
+        parameter must be a string with the following format: x.x.x, where x is
+        an interger between 0 and 99."""
         self._int_version = UniverseVersion._version_to_int(version)
         self._sem_version = version
 
     @property
     def int_version(self):
-        """Returns the interger representation of the version"""
+        """Returns the interger representation of the version."""
         return self._int_version
 
     @property
     def sem_version(self):
-        """Returns the string representation of the version"""
+        """Returns the string representation of the version."""
         return self._sem_version
 
     @classmethod
     def _version_to_int(cls, version):
         """Returns the integer representation of the universe version used to
         compare two different versions of a universe. The version parameter
-        must have the following shape: x.x.x, where x is an integer between 0
+        must have the following format: x.x.x, where x is an integer between 0
         and 99."""
 
         if version == "":
@@ -49,7 +45,7 @@ class UniverseVersion:
     @classmethod
     def from_int_version(cls, version):
         """Given a integer representing a semver returns the corresponding
-        UniverseVersion"""
+        UniverseVersion."""
         patch = version % 100
         remainder = version // 100
 
@@ -64,21 +60,18 @@ class UniverseVersion:
 
 class SemverError(Exception):
     """Returned when creating an instance of the UniverseVersion class if the
-    passed version parameter does not comply with the expected shape."""
+    passed version parameter does not comply with the expected format."""
 
     def __init__(self):
         super().__init__(
-            "the semver param must have the following shape: xx.xx.xx \
-            where x is a digit"
+            "the semver param must have the following format: x.x.x \
+            where x is a digit."
         )
 
 
 class Universe:
-    """Asset Inventory Universe"""
+    """Asset Inventory Universe."""
 
     def __init__(self, version):
         self.namespace = "asset-inventory"
         self.version = version
-
-
-CURRENT_UNIVERSE = Universe(UniverseVersion(CURRENT_UNIVERSE_VERSION))

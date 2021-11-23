@@ -1,17 +1,18 @@
-"""Tests for the ``CURRENT_UNIVERSE`` class."""
+"""Tests for the ``universe`` module."""
 
 import pytest
 
 
 from graph_asset_inventory_api.inventory.universe import (
-    CURRENT_UNIVERSE,
     UniverseVersion,
     SemverError,
 )
 
+from graph_asset_inventory_api.inventory import CURRENT_UNIVERSE
+
 
 def test_universe_invalid_semver():
-    """Tests that and exception is raised when a sem version is not valid for a
+    """Tests that and exception is raised when a semver is not valid for a
     Universe."""
 
     with pytest.raises(SemverError):
@@ -40,8 +41,8 @@ def test_universe_invalid_semver():
 
 
 def test_universe_from_valid_semver():
-    """Tests that from a correct semversion string a proper ``UniverseVersion``
-    is constructed."""
+    """Tests that from a correct semver string a proper ``UniverseVersion`` is
+    constructed."""
 
     version = UniverseVersion("0.1.1")
     assert version.sem_version == "0.1.1"

@@ -10,8 +10,16 @@ from gremlin_python.process.traversal import (
     Direction,
 )
 
+from graph_asset_inventory_api.inventory.universe import (
+    Universe,
+    UniverseVersion,
+)
+
+
 CURRENT_UNIVERSE_VERSION = "0.0.1"
 """Defines the current version of the Asset Inventory universe."""
+
+CURRENT_UNIVERSE = Universe(UniverseVersion(CURRENT_UNIVERSE_VERSION))
 
 
 class InventoryError(Exception):
@@ -386,18 +394,20 @@ class DbOwns(Owns):
         return cls(team_vid, asset_vid, eid, time_attr)
 
 
-class Universe:
+class InventoryUniverse:
     """Represents and Asset Inventory Universe instance."""
 
     def __init__(self, namespace, version):
-        self.version = version
         self.namespace = namespace
+        self.version = UniverseVersion.from_int_version(version)
 
     def __repr__(self):
-        return f'{{namespace: {self.namespace}, version: {self.version}}}'
+        version = self.version.sem_version
+        return f'{{namespace: {self.namespace}, version: {version}}}'
 
     def __str__(self):
-        return f'{self.namespace}-v{self.version}'
+        version = self.version.sem_version
+        return f'{self.namespace}-v{version}'
 
     def __eq__(self, o):
         if not isinstance(self, o.__class__):
@@ -407,7 +417,7 @@ class Universe:
             self.version == o.version
 
 
-class DbUniverse(Universe):
+class DbUniverse(InventoryUniverse):
     """Represents a ``Universe`` in the context of the Security Graph. The main
     difference with a ``Universe`` is that a ``DbUniverse`` has a vertex ID
     field."""
@@ -417,11 +427,13 @@ class DbUniverse(Universe):
         self.vid = vid
 
     def __repr__(self):
+        version = self.version.sem_version
         return f'{{vid: {self.vid}, namespace: {self.namespace}, ' \
-               f'version: {self.version}}}'
+               f'version: {version}}}'
 
     def __str__(self):
-        return f'{self.namespace}-v{self.version}@{self.vid}'
+        version = self.version.sem_version
+        return f'{self.namespace}-v{version}@{self.vid}'
 
     def __eq__(self, o):
         return super().__eq__(o) and self.vid == o.vid
@@ -436,8 +448,8 @@ class DbUniverse(Universe):
 
         if not isinstance(vuniverse['namespace'], str):
             raise InventoryError('namespace is not an string')
-        if not isinstance(vuniverse['version'], str):
-            raise InventoryError('version is not a string')
+        if not isinstance(vuniverse['version'], int):
+            raise InventoryError('version is not an int')
 
         namespace = vuniverse['namespace']
         version = vuniverse['version']

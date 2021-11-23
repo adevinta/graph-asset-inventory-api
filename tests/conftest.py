@@ -17,9 +17,8 @@ from gremlin_python.process.traversal import (
 from graph_asset_inventory_api import EnvVarNotSetError
 from graph_asset_inventory_api.factory import create_app
 from graph_asset_inventory_api.inventory.client import InventoryClient
-from graph_asset_inventory_api.inventory.dsl import InventoryTraversalSource
+
 from graph_asset_inventory_api.inventory.universe import (
-    CURRENT_UNIVERSE,
     Universe,
     UniverseVersion,
 )
@@ -28,6 +27,7 @@ from graph_asset_inventory_api.inventory import (
     DbAsset,
     DbParentOf,
     DbOwns,
+    CURRENT_UNIVERSE,
 )
 from graph_asset_inventory_api.api import (
     TeamResp,
@@ -57,7 +57,7 @@ def g():
     connection after finishing the test. All vertices are deleted on both
     the setup and teardown stage of this fixture."""
     conn = gremlin.get_connection(get_gremlin_endpoint(), get_auth_mode())
-    g = traversal(InventoryTraversalSource).withRemote(conn)
+    g = traversal().withRemote(conn)
 
     g.V().drop().iterate()
 
@@ -69,11 +69,17 @@ def g():
 
 
 @pytest.fixture
-def cli(g):  # pylint: disable=unused-argument
+def universe(g):
+    """Creates the current universe vertex"""
+    create_universe(g, CURRENT_UNIVERSE)
+
+
+@pytest.fixture
+def cli(g, universe):  # pylint: disable=unused-argument
     """Returns an ``InventoryClient``. It takes care of closing the client
     after finishing the test."""
     cli = InventoryClient(get_gremlin_endpoint(), get_auth_mode())
-    cli.ensure_universe()
+
     yield cli
 
     cli.close()
@@ -84,6 +90,7 @@ def flask_cli(g):  # pylint: disable=unused-argument
     """Returns a flask test client. It takes care of closing the client after
     finishing the test."""
     conn_app = create_app()
+
     with conn_app.app.test_client() as flask_cli:
         yield flask_cli
 
@@ -101,6 +108,7 @@ def unknown_uuid():
 def init_teams(g):
     """Creates an initial set of teams and yields a ``DbTeam`` list. They can
     be used to test the ``InventoryClient``."""
+
     init_teams = [
         ('identifier0', 'name0'),
         ('identifier1', 'name1'),
@@ -134,9 +142,9 @@ def init_teams(g):
 
 
 @pytest.fixture
-def old_universe():
-    """Creates a universe with version 0.0.1 so it can be used in tests as a
-    universe older than the current one.``."""
+def new_universe():
+    """Creates a universe with a newer version so it can be used in tests as a
+    universe newer than the current one.``."""
     yield Universe(
         UniverseVersion.from_int_version(
           CURRENT_UNIVERSE.version.int_version + 1
@@ -145,7 +153,7 @@ def old_universe():
 
 
 @pytest.fixture
-def init_old_universe_teams(g, old_universe):
+def init_new_universe_teams(g, new_universe):
     """Creates an initial set of teams and yields a ``DbTeam`` list. They can
     be used to test the ``InventoryClient``."""
     init_teams = [
@@ -154,7 +162,7 @@ def init_old_universe_teams(g, old_universe):
         ('identifier2', 'name2'),
         ('identifier3', 'name3'),
     ]
-    g.ensure_universe(universe=old_universe).next()
+    create_universe(g, new_universe)
     # Add teams.
     created_teams = []
     for team in init_teams:
@@ -167,8 +175,8 @@ def init_old_universe_teams(g, old_universe):
                 .from_(
                     __.V()
                     .hasLabel('Universe')
-                    .has('namespace', old_universe.namespace)
-                    .has('version', old_universe.version.int_version)
+                    .has('namespace', new_universe.namespace)
+                    .has('version', new_universe.version.int_version)
                 )
             ) \
             .elementMap() \
@@ -181,8 +189,8 @@ def init_old_universe_teams(g, old_universe):
 
 
 @pytest.fixture
-def team_not_in_old_universe(init_teams):
-    """Returns a team that does not exists in the old universe."""
+def team_not_in_current_universe(init_teams):
+    """Returns a team that does not exists in the current universe."""
     return init_teams[4]
 
 
@@ -295,7 +303,7 @@ def init_assets(g):
 
 
 @pytest.fixture
-def init_old_universe_assets(g, old_universe):
+def init_new_universe_assets(g, new_universe):
     """Creates an initial set of assets and yields a ``DbAsset`` list.  They
     can be used to test the ``InventoryClient``."""
     # (type, identifier, first_seen, last_seen, expiration)
@@ -313,7 +321,7 @@ def init_old_universe_assets(g, old_universe):
             '2021-07-14T01:00:00+00:00',
         )
     ]
-    g.ensure_universe(universe=old_universe).next()
+    create_universe(g, new_universe)
 
     # Add assets.
     created_assets = []
@@ -335,8 +343,8 @@ def init_old_universe_assets(g, old_universe):
                 .from_(
                     __.V()
                     .hasLabel('Universe')
-                    .has('namespace', old_universe.namespace)
-                    .has('version', old_universe.version.int_version)
+                    .has('namespace', new_universe.namespace)
+                    .has('version', new_universe.version.int_version)
                 )
             ) \
             .elementMap() \
@@ -512,3 +520,18 @@ def init_api_owners(init_owners):
         ]
 
     yield api_owners
+
+
+def create_universe(g, universe):
+    """Creates a new  asset inventory ``Universe`` vertex"""
+    return g \
+        .addV("Universe") \
+        .property(T.id, str(uuid.uuid4())) \
+        .property(
+                    Cardinality.single, 'namespace',
+                    universe.namespace
+                ) \
+        .property(
+                    Cardinality.single, 'version',
+                    universe.version.int_version
+        ).next()
