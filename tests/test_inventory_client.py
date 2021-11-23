@@ -436,7 +436,7 @@ def test_add_asset_current_universe(cli, init_assets):
     next_version = UniverseVersion.from_int_version(
         CURRENT_UNIVERSE.version.int_version + 1
     )
-    tmp = CURRENT_UNIVERSE.version
+    tmp_universe_version = CURRENT_UNIVERSE.version
     CURRENT_UNIVERSE.version = next_version
     cli.g().ensure_universe(CURRENT_UNIVERSE).next()
     timestamp = datetime.fromisoformat('2022-02-01T01:00:00+00:00')
@@ -458,7 +458,7 @@ def test_add_asset_current_universe(cli, init_assets):
 
     # Restore the current universe version, so it doesn't interfere with the
     # other tests.
-    CURRENT_UNIVERSE.version = tmp
+    CURRENT_UNIVERSE.version = tmp_universe_version
 
 
 def test_add_asset_empty_type_identifier(cli, init_assets):
