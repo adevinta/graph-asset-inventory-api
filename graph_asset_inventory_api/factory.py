@@ -10,6 +10,8 @@ import connexion
 from graph_asset_inventory_api import EnvVarNotSetError
 from graph_asset_inventory_api.context import close_inventory_client
 
+from graph_asset_inventory_api.inventory.client import InventoryClient
+
 
 def config_logger(debug=False):
     """Configures the Flask logger."""
@@ -52,6 +54,17 @@ def config_auth_mode(app):
     app.config['GREMLIN_AUTH_MODE'] = os.getenv('GREMLIN_AUTH_MODE', 'none')
 
 
+def initialize_db(app):
+    """Executes the actions that have to be performed in the graph before
+    accessing it."""
+    endpoint = app.config['GREMLIN_ENDPOINT']
+    auth_mode = app.config['GREMLIN_AUTH_MODE']
+    client = InventoryClient(endpoint, auth_mode)
+    # Ensure the current version of the Universe exists in the db.
+    client.ensure_universe()
+    client.close()
+
+
 def create_app():
     """Returns a new Connection App."""
     # Get flask environment.
@@ -75,5 +88,6 @@ def create_app():
 
     config_db(conn_app.app)
     config_auth_mode(conn_app.app)
+    initialize_db(conn_app.app)
 
     return conn_app

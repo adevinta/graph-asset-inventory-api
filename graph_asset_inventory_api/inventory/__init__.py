@@ -10,6 +10,17 @@ from gremlin_python.process.traversal import (
     Direction,
 )
 
+from graph_asset_inventory_api.inventory.universe import (
+    Universe,
+    UniverseVersion,
+)
+
+
+CURRENT_UNIVERSE_VERSION = "0.0.1"
+"""Defines the current version of the Asset Inventory universe."""
+
+CURRENT_UNIVERSE = Universe(UniverseVersion(CURRENT_UNIVERSE_VERSION))
+
 
 class InventoryError(Exception):
     """Represents a generic Asset Inventory error."""
@@ -381,3 +392,67 @@ class DbOwns(Owns):
         time_attr = TeamTimeAttr(start_time, end_time)
 
         return cls(team_vid, asset_vid, eid, time_attr)
+
+
+class InventoryUniverse:
+    """Represents and Asset Inventory Universe instance."""
+
+    def __init__(self, namespace, version):
+        self.namespace = namespace
+        self.version = version
+
+    def __repr__(self):
+        version = self.version.sem_version
+        return f'{{namespace: {self.namespace}, version: {version}}}'
+
+    def __str__(self):
+        version = self.version.sem_version
+        return f'{self.namespace}-v{version}'
+
+    def __eq__(self, o):
+        if not isinstance(self, o.__class__):
+            return False
+
+        return self.namespace == o.namespace and \
+            self.version == o.version
+
+
+class DbUniverse(InventoryUniverse):
+    """Represents a ``Universe`` in the context of the Security Graph. The main
+    difference with a ``Universe`` is that a ``DbUniverse`` has a vertex ID
+    field."""
+
+    def __init__(self, namespace, version, vid):
+        super().__init__(namespace, version)
+        self.vid = vid
+
+    def __repr__(self):
+        version = self.version.sem_version
+        return f'{{vid: {self.vid}, namespace: {self.namespace}, ' \
+               f'version: {version}}}'
+
+    def __str__(self):
+        version = self.version.sem_version
+        return f'{self.namespace}-v{version}@{self.vid}'
+
+    def __eq__(self, o):
+        return super().__eq__(o) and self.vid == o.vid
+
+    @classmethod
+    def from_vuniverse(cls, vuniverse):
+        """Creates a ``DbUniverse`` from an universe vertex. An universe
+        vertex is the object returned by gremlin when using a ``elementMap``
+        step."""
+        if vuniverse[T.label] != 'Universe':
+            raise InventoryError('wrong vertex type')
+
+        if not isinstance(vuniverse['namespace'], str):
+            raise InventoryError('namespace is not an string')
+        if not isinstance(vuniverse['version'], int):
+            raise InventoryError('version is not an int')
+
+        namespace = vuniverse['namespace']
+        version = vuniverse['version']
+        vid = vuniverse[T.id]
+        universe_version = UniverseVersion.from_int_version(version)
+        return cls(namespace, universe_version, vid)
