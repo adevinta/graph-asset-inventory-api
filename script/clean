@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Exit on error and undefined variable.
+set -e -u
+
+# Set working directory to the root of the repo.
+cd "$(dirname $0)/.."
+
+# Clean up all docker-compose projects.
+PROJECTS=('graph-asset-inventory-api-local' 'graph-asset-inventory-api-test' 'graph-asset-inventory-api-lint')
+for project in ${PROJECTS[@]}; do
+	echo "Cleaning up ${project}" >&2
+	docker-compose -p "${project}" rm -s -f
+done

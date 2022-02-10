@@ -1,0 +1,80 @@
+version: "2.4"
+
+services:
+  graph-asset-inventory-api-local:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    env_file: env/dev
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+      graph-notebook-local:
+        condition: service_started
+    entrypoint: ["python"]
+    command: ["graph_asset_inventory_api/app.py"]
+
+  graph-asset-inventory-api-test:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    env_file: env/dev
+    volumes:
+      - .:/app
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+      graph-notebook-test:
+        condition: service_started
+    entrypoint: "pytest"
+    command: "${PYTEST_FLAGS:-}"
+
+  graph-asset-inventory-api-lint:
+    build:
+      context: .
+      dockerfile: Dockerfile-dev
+    volumes:
+      - .:/app
+    entrypoint: ["/bin/sh"]
+    command: ["-c", " \
+      echo 'Running flake8...' && flake8 ${LINTER_PATHS} && \
+      echo 'Running pylint...' && pylint ${LINTER_PATHS} \
+    "]
+
+  graph-notebook-local:
+    image: adevinta/graph-notebook-docker:v1.0.0
+    ports:
+      - "127.0.0.1:8888:8888"
+    volumes:
+      - ./notebooks:/notebooks
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+
+  graph-notebook-test:
+    image: adevinta/graph-notebook-docker:v1.0.0
+    ports:
+      - "127.0.0.1:8889:8888"
+    volumes:
+      - ./notebooks:/notebooks
+    depends_on:
+      gremlin-server:
+        condition: service_healthy
+
+  gremlin-server:
+    image: tinkerpop/gremlin-server:3.5.0
+    entrypoint: /opt/gremlin-server/bin/gremlin-server.sh
+    command: conf/gremlin-server.yaml
+    expose:
+      - "8182"
+    volumes:
+      - ./gremlin-server/conf:/opt/gremlin-server/conf:ro
+    healthcheck:
+      test: ["CMD", "nc", "-z", "gremlin-server:8182"]
+      interval: 5s
+      timeout: 10s
+      retries: 6

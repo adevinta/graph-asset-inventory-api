@@ -12,5 +12,6 @@ export LINTER_PATHS=${@:-'graph_asset_inventory_api tests benches'}
 echo "Linter paths: '${LINTER_PATHS}'"
 
 # Run the docker-compose lint environment.
-docker-compose -f docker-compose-lint.yml -p graph-asset-inventory-api-lint \
-	up --remove-orphans --build --exit-code-from inventory-api-lint
+DOCKER_COMPOSE_PROJECT='graph-asset-inventory-api-lint'
+docker-compose -p "${DOCKER_COMPOSE_PROJECT}" build graph-asset-inventory-api-lint
+docker-compose -p "${DOCKER_COMPOSE_PROJECT}" run graph-asset-inventory-api-lint
