@@ -253,13 +253,18 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Teams.
 
-    def teams(self, universe):
+    def teams(self, universe, team_identifier=None):
         """Returns all the ``Team`` vertices belonging to the given
         universe."""
-        return self \
+        teams = self \
             .V() \
             .is_team() \
             .where(__.is_linked_to_universe(universe))
+
+        if team_identifier is not None:
+            teams = teams.has('identifier', team_identifier)
+
+        return teams
 
     def team(self, vid):
         """Returns a ``Team`` vertex with a given vertex id ``vid``."""

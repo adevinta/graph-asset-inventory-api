@@ -70,6 +70,31 @@ def test_teams_pagination(cli, init_teams):
         cli.teams(0, 1000), init_teams, lambda x: x.vid)
 
 
+def test_teams_identifier(cli, init_teams):
+    """Tests the filter ``identifier`` of the method ``teams`` of the class
+    ``InventoryClient``."""
+    teams = cli.teams(team_identifier='identifier0')
+    expected = [
+        team for team in init_teams if team.identifier == 'identifier0'
+    ]
+    assert compare_unsorted_list(teams, expected, lambda x: x.vid)
+
+
+def test_teams_identifier_pagination(cli, init_teams):
+    """Tests the filter ``identifier`` and the ``pagination`` param of the
+    method ``teams`` of the class ``InventoryClient``."""
+    expected = [
+        team for team in init_teams if team.identifier == 'identifier0'
+    ]
+    expected = expected[:1]
+    assert compare_unsorted_list(
+        cli.teams(
+            page_idx=0, page_size=1, team_identifier='identifier0'
+        ),
+        expected, lambda x: x.vid
+    )
+
+
 def test_team(cli, init_teams):
     """Tests the method ``team`` of the class ``InventoryClient``."""
     team = cli.team(init_teams[2].vid)

@@ -31,6 +31,35 @@ def test_get_teams_pagination_missing_size(flask_cli, init_api_teams):
     assert compare_unsorted_list(data, init_api_teams, lambda x: x['id'])
 
 
+def test_get_teams_by_identifier(flask_cli, init_api_teams):
+    """Tests the API endpoint ``GET /v1/teams`` filtering by a concrete team
+    identifier."""
+    resp = flask_cli.get('/v1/teams?team_identifier=identifier1')
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+    expected = [
+        team for team in init_api_teams if team['identifier'] == 'identifier1'
+    ]
+    assert compare_unsorted_list(data, expected, lambda x: x['id'])
+
+
+def test_get_teams_by_identifier_pagination(flask_cli, init_api_teams):
+    """Tests the API endpoint ``GET /v1/teams`` filtering by a concrete team
+    identifier with pagination."""
+    resp = flask_cli.get('/v1/teams?page=0&size=1&team_identifier=identifier1')
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+    expected = [
+        team for team in init_api_teams if team['identifier'] == 'identifier1'
+    ]
+    expected = expected[:1]
+    assert compare_unsorted_list(data, expected, lambda x: x['id'])
+
+
 def test_post_teams(flask_cli, init_api_teams):
     """Tests the API endpoint ``POST /v1/teams``."""
     team_req = TeamReq('new_identifier', 'new_name')
