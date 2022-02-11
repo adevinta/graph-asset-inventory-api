@@ -489,7 +489,7 @@ class InventoryClient:
 
         # Check that expiration is not before the timestamp.
         if end_time is not None and end_time < start_time:
-            raise ValueError('start_time before end_time')
+            raise ValueError('end_time before start_time')
 
         # Check if both vertices exist.
         vteam = self._g \
