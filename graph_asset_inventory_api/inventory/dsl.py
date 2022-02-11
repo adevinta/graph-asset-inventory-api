@@ -320,15 +320,20 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Assets.
 
-    def assets(self, universe, asset_type=None):
+    def assets(self, universe, asset_type=None, asset_identifier=None):
         """Returns all the ``Asset`` vertices that belong to a ``Universe``."""
         assets = self \
             .V() \
             .is_asset() \
             .where(__.is_linked_to_universe(universe))
-        if asset_type is None:
-            return assets
-        return assets.has('type', asset_type)
+
+        if asset_type is not None:
+            assets = assets.has('type', asset_type)
+
+        if asset_identifier is not None:
+            assets = assets.has('identifier', asset_identifier)
+
+        return assets
 
     def asset(self, vid):
         """Returns an ``Asset`` vertex with a given vertex id ``vid``."""

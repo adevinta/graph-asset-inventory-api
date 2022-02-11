@@ -141,6 +141,12 @@ paths:
           schema:
             type: string
           required: false
+        - in: query
+          name: asset_identifier
+          description: Identifier of the assets.
+          schema:
+            type: string
+          required: false
       responses:
         '200':
           description: A JSON array of assets.

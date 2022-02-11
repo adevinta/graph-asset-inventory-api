@@ -152,15 +152,16 @@ class InventoryClient:
         page_idx=None,
         page_size=100,
         asset_type=None,
+        asset_identifier=None,
         universe=CURRENT_UNIVERSE
-    ):
+    ):  # pylint: disable=too-many-arguments
         """Returns all the assets belonging to the specified
         ``universe``(filtered by `type` if any is specified) if ``page_idx`` is
         None. Otherwise it returns the page of assets with index ``page_idx``
         and size ``page_size``. By default, the page size is 100 items."""
 
         vassets = self._g \
-            .assets(universe, asset_type)
+            .assets(universe, asset_type, asset_identifier)
 
         if page_idx is not None:
             offset = page_idx * page_size

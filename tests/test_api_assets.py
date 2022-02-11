@@ -40,9 +40,9 @@ def test_get_assets_pagination_missing_size(flask_cli, init_api_assets):
     assert compare_unsorted_list(data, init_api_assets, lambda x: x['id'])
 
 
-def test_get_assets_with_type(flask_cli, init_api_assets):
+def test_get_assets_by_type(flask_cli, init_api_assets):
     """Tests the API endpoint ``GET /v1/assets`` filtering by a concrete asset
-    type"""
+    type."""
     resp = flask_cli.get('/v1/assets?asset_type=type1')
 
     assert resp.status_code == 200
@@ -50,6 +50,38 @@ def test_get_assets_with_type(flask_cli, init_api_assets):
     data = json.loads(resp.data)
     expected = [
         asset for asset in init_api_assets if asset['type'] == 'type1'
+    ]
+    assert compare_unsorted_list(data, expected, lambda x: x['id'])
+
+
+def test_get_assets_by_identifier(flask_cli, init_api_assets):
+    """Tests the API endpoint ``GET /v1/assets`` filtering by a concrete asset
+    identifier."""
+    resp = flask_cli.get('/v1/assets?asset_identifier=identifier1')
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+    expected = [
+        asset for asset in init_api_assets
+        if asset['identifier'] == 'identifier1'
+    ]
+    assert compare_unsorted_list(data, expected, lambda x: x['id'])
+
+
+def test_get_assets_by_type_identifier(flask_cli, init_api_assets):
+    """Tests the API endpoint ``GET /v1/assets`` filtering by a concrete asset
+    type and identifier."""
+    resp = flask_cli.get(
+        '/v1/assets?asset_type=type1&asset_identifier=identifier1',
+    )
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+    expected = [
+        asset for asset in init_api_assets
+        if asset['type'] == 'type1' and asset['identifier'] == 'identifier1'
     ]
     assert compare_unsorted_list(data, expected, lambda x: x['id'])
 
