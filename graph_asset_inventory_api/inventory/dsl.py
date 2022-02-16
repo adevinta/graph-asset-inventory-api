@@ -253,13 +253,18 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Teams.
 
-    def teams(self, universe):
+    def teams(self, universe, team_identifier=None):
         """Returns all the ``Team`` vertices belonging to the given
         universe."""
-        return self \
+        teams = self \
             .V() \
             .is_team() \
             .where(__.is_linked_to_universe(universe))
+
+        if team_identifier is not None:
+            teams = teams.has('identifier', team_identifier)
+
+        return teams
 
     def team(self, vid):
         """Returns a ``Team`` vertex with a given vertex id ``vid``."""
@@ -320,15 +325,20 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Assets.
 
-    def assets(self, universe, asset_type=None):
+    def assets(self, universe, asset_type=None, asset_identifier=None):
         """Returns all the ``Asset`` vertices that belong to a ``Universe``."""
         assets = self \
             .V() \
             .is_asset() \
             .where(__.is_linked_to_universe(universe))
-        if asset_type is None:
-            return assets
-        return assets.has('type', asset_type)
+
+        if asset_type is not None:
+            assets = assets.has('type', asset_type)
+
+        if asset_identifier is not None:
+            assets = assets.has('identifier', asset_identifier)
+
+        return assets
 
     def asset(self, vid):
         """Returns an ``Asset`` vertex with a given vertex id ``vid``."""

@@ -43,10 +43,10 @@ Jupyter Notebook can be accessed via:
 http://localhost:8888/?token=<token>
 ```
 
-The required token can be obtained from the docker-compose logs or executing:
+The required token can be obtained executing:
 
 ```
-docker exec graph-asset-inventory-api-local_graph-notebook_1 jupyter notebook list
+docker exec graph-asset-inventory-api-local_graph-notebook-local_1 jupyter notebook list
 ```
 
 The local development environmet supports hot realoading. This means that you
@@ -74,6 +74,9 @@ A test coverage report can be generated with the flag `--cov`:
 ```
 script/test --cov
 ```
+
+To make debugging test failures easier, a Jupyter Notebook environment is
+launched on port **8889**.
 
 ### Linters
 
@@ -111,29 +114,6 @@ For instance,
 ./benches/recon_simulator.py -r 1 -a 20,1000 | \
   ./benches/assets_bulk_loader.py http://localhost:8000
 ```
-
-### Remote Gremlin servers
-
-Both the test suite and the local development environment can be connected to a
-remote Gremlin server. For instance, an AWS Neptune cluster. In order to do so,
-the following environment variables must be set when calling `script/local` or
-`script/test`:
-
-- `GREMLIN_ENDPOINT`: URL pointing to the target Gremlin server. For example,
-  `wss://example.cluster.eu-west-1.neptune.amazonaws.com:8182/gremlin`.
-- `GREMLIN_AUTH_MODE`: Gremlin authentication mode. For example, `neptune_iam`.
-- `DOCKER_EXTRA_HOST`: Docker's extra hosts configuration. This is required,
-  for instance, if the remote server is accessed via port-forwarding from the
-  host. For example,
-  `example.cluster.eu-west-1.neptune.amazonaws.com:host-gateway`.
-
-In the case of an IAM authenticated Neptune cluster, the following AWS
-environment variables are also required:
-
-- `AWS_ACCESS_KEY_ID`
-- `AWS_SECRET_ACCESS_KEY`
-- `AWS_SESSION_TOKEN`
-- `AWS_REGION`
 
 ## Environment Variables
 

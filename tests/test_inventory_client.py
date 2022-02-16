@@ -70,6 +70,31 @@ def test_teams_pagination(cli, init_teams):
         cli.teams(0, 1000), init_teams, lambda x: x.vid)
 
 
+def test_teams_identifier(cli, init_teams):
+    """Tests the filter ``identifier`` of the method ``teams`` of the class
+    ``InventoryClient``."""
+    teams = cli.teams(team_identifier='identifier0')
+    expected = [
+        team for team in init_teams if team.identifier == 'identifier0'
+    ]
+    assert compare_unsorted_list(teams, expected, lambda x: x.vid)
+
+
+def test_teams_identifier_pagination(cli, init_teams):
+    """Tests the filter ``identifier`` and the ``pagination`` param of the
+    method ``teams`` of the class ``InventoryClient``."""
+    expected = [
+        team for team in init_teams if team.identifier == 'identifier0'
+    ]
+    expected = expected[:1]
+    assert compare_unsorted_list(
+        cli.teams(
+            page_idx=0, page_size=1, team_identifier='identifier0'
+        ),
+        expected, lambda x: x.vid
+    )
+
+
 def test_team(cli, init_teams):
     """Tests the method ``team`` of the class ``InventoryClient``."""
     team = cli.team(init_teams[2].vid)
@@ -316,6 +341,32 @@ def test_assets_type(cli, init_assets):
         cli.assets(asset_type='type0'), expected, lambda x: x.vid)
 
 
+def test_assets_identifier(cli, init_assets):
+    """Tests the filter ``identifier`` of the method ``assets`` of the class
+    ``InventoryClient``."""
+    expected = [
+        asset for asset in init_assets
+        if asset.asset_id.identifier == 'identifier0'
+    ]
+    assert compare_unsorted_list(
+        cli.assets(asset_identifier='identifier0'), expected, lambda x: x.vid)
+
+
+def test_assets_type_identifier(cli, init_assets):
+    """Tests the filter ``type`` and ``identifier`` of the method ``assets`` of
+    the class ``InventoryClient``."""
+    expected = [
+        asset for asset in init_assets
+        if (asset.asset_id.type == 'type0' and
+            asset.asset_id.identifier == 'identifier0')
+    ]
+    assert compare_unsorted_list(
+        cli.assets(asset_type='type0', asset_identifier='identifier0'),
+        expected,
+        lambda x: x.vid,
+    )
+
+
 def test_assets_type_pagination(cli, init_assets):
     """Tests the filter ``type`` and the ``pagination`` params of the method
     ``assets`` of the class ``InventoryClient``."""
@@ -521,9 +572,6 @@ def test_update_asset_past_timestamp(cli, init_assets):
 
     updated_asset = cli.update_asset(
         init_assets[2].vid, init_assets[2], expiration, timestamp)
-
-    print(updated_asset.__dict__)
-    print(init_assets[2].__dict__)
 
     assert updated_asset.vid == init_assets[2].vid
     assert updated_asset.asset_id == init_assets[2].asset_id

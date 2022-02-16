@@ -50,14 +50,20 @@ class InventoryClient:
 
     # Teams.
 
-    def teams(self, page_idx=None, page_size=100, universe=CURRENT_UNIVERSE):
-        """Returns all teams associated with the given ``universe``, if
-        ``page_idx`` is None. Otherwise it returns the page of teams with index
-        ``page_idx`` and size ``page_size``. By default, the page size is 100
-        items."""
+    def teams(
+        self,
+        page_idx=None,
+        page_size=100,
+        team_identifier=None,
+        universe=CURRENT_UNIVERSE,
+    ):
+        """Returns all teams associated with the given ``universe`` (filtered
+        by ``identifier`` if specified) if ``page_idx`` is None. Otherwise it
+        returns the page of teams with index ``page_idx`` and size
+        ``page_size``. By default, the page size is 100 items."""
 
         vteams = self._g \
-            .teams(universe)
+            .teams(universe, team_identifier)
 
         if page_idx is not None:
             offset = page_idx * page_size
@@ -152,15 +158,17 @@ class InventoryClient:
         page_idx=None,
         page_size=100,
         asset_type=None,
+        asset_identifier=None,
         universe=CURRENT_UNIVERSE
-    ):
+    ):  # pylint: disable=too-many-arguments
         """Returns all the assets belonging to the specified
-        ``universe``(filtered by `type` if any is specified) if ``page_idx`` is
-        None. Otherwise it returns the page of assets with index ``page_idx``
-        and size ``page_size``. By default, the page size is 100 items."""
+        ``universe`` (filtered by ``type`` and ``identifier`` if any is
+        specified) if ``page_idx`` is None. Otherwise it returns the page of
+        assets with index ``page_idx`` and size ``page_size``. By default, the
+        page size is 100 items."""
 
         vassets = self._g \
-            .assets(universe, asset_type)
+            .assets(universe, asset_type, asset_identifier)
 
         if page_idx is not None:
             offset = page_idx * page_size
@@ -489,7 +497,7 @@ class InventoryClient:
 
         # Check that expiration is not before the timestamp.
         if end_time is not None and end_time < start_time:
-            raise ValueError('start_time before end_time')
+            raise ValueError('end_time before start_time')
 
         # Check if both vertices exist.
         vteam = self._g \

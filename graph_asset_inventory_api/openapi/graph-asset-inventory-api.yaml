@@ -25,6 +25,12 @@ paths:
           schema:
             type: integer
           required: false
+        - in: query
+          name: team_identifier
+          description: Identifier of the team.
+          schema:
+            type: string
+          required: false
       responses:
         '200':
           description: A JSON array of teams.
@@ -138,6 +144,12 @@ paths:
         - in: query
           name: asset_type
           description: Type of the assets.
+          schema:
+            type: string
+          required: false
+        - in: query
+          name: asset_identifier
+          description: Identifier of the assets.
           schema:
             type: string
           required: false
@@ -415,8 +427,14 @@ paths:
             schema:
               $ref: '#/components/schemas/OwnsReq'
       responses:
+        '200':
+          description: A JSON object with the updated relationship.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OwnsResp'
         '201':
-          description: A JSON object with the created or updated relationship.
+          description: A JSON object with the created relationship.
           content:
             application/json:
               schema:

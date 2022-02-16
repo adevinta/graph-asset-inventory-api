@@ -12,11 +12,11 @@ from graph_asset_inventory_api.inventory import (
 from graph_asset_inventory_api.api import TeamResp
 
 
-def get_teams(page=None, size=100):
+def get_teams(page=None, size=100, team_identifier=None):
     """Request handler for the API endpoint ``GET /v1/teams``."""
     cli = get_inventory_client()
 
-    teams = cli.teams(page, size)
+    teams = cli.teams(page, size, team_identifier)
 
     resp = [TeamResp.from_dbteam(t).__dict__ for t in teams]
     return resp, 200
