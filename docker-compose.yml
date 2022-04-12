@@ -46,7 +46,7 @@ services:
     "]
 
   graph-notebook-local:
-    image: adevinta/graph-notebook-docker:v1.0.0
+    image: adevinta/graph-notebook-docker:v1.1.0
     ports:
       - "127.0.0.1:8888:8888"
     volumes:
@@ -56,7 +56,7 @@ services:
         condition: service_healthy
 
   graph-notebook-test:
-    image: adevinta/graph-notebook-docker:v1.0.0
+    image: adevinta/graph-notebook-docker:v1.1.0
     ports:
       - "127.0.0.1:8889:8888"
     volumes:
