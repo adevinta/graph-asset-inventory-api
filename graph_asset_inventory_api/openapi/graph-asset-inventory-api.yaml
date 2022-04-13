@@ -153,6 +153,13 @@ paths:
           schema:
             type: string
           required: false
+        - in: query
+          name: valid_at
+          description: Time at which the assets must exist and not being expired.
+          schema:
+            type: string
+            format: date-time
+          required: false
       responses:
         '200':
           description: A JSON array of assets.
