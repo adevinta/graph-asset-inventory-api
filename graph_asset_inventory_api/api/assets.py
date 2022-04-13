@@ -14,11 +14,20 @@ from graph_asset_inventory_api.inventory import (
 from graph_asset_inventory_api.api import AssetResp
 
 
-def get_assets(page=None, size=100, asset_type=None, asset_identifier=None):
+def get_assets(
+    page=None,
+    size=100,
+    asset_type=None,
+    asset_identifier=None,
+    valid_at=None
+):
     """Request handler for the API endpoint ``GET /v1/assets``."""
     cli = get_inventory_client()
 
-    assets = cli.assets(page, size, asset_type, asset_identifier)
+    if valid_at is not None:
+        valid_at = dateutil.parser.isoparse(valid_at)
+
+    assets = cli.assets(page, size, asset_type, asset_identifier, valid_at)
 
     resp = [AssetResp.from_dbasset(t).__dict__ for t in assets]
     return resp, 200

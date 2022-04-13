@@ -325,7 +325,13 @@ class InventoryTraversalSource(GraphTraversalSource):
 
     # Assets.
 
-    def assets(self, universe, asset_type=None, asset_identifier=None):
+    def assets(
+        self,
+        universe,
+        asset_type=None,
+        asset_identifier=None,
+        valid_at=None
+    ):
         """Returns all the ``Asset`` vertices that belong to a ``Universe``."""
         assets = self \
             .V() \
@@ -337,6 +343,12 @@ class InventoryTraversalSource(GraphTraversalSource):
 
         if asset_identifier is not None:
             assets = assets.has('identifier', asset_identifier)
+
+        if valid_at is not None:
+            assets = assets.and_(
+                __.has("first_seen", P.lte(valid_at)),
+                __.has("expiration", P.gte(valid_at))
+            )
 
         return assets
 

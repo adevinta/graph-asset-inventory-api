@@ -159,6 +159,7 @@ class InventoryClient:
         page_size=100,
         asset_type=None,
         asset_identifier=None,
+        valid_at=None,
         universe=CURRENT_UNIVERSE
     ):  # pylint: disable=too-many-arguments
         """Returns all the assets belonging to the specified
@@ -168,7 +169,7 @@ class InventoryClient:
         page size is 100 items."""
 
         vassets = self._g \
-            .assets(universe, asset_type, asset_identifier)
+            .assets(universe, asset_type, asset_identifier, valid_at)
 
         if page_idx is not None:
             offset = page_idx * page_size
