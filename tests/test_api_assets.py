@@ -1,6 +1,7 @@
 """Tests for the Asset Inventory API."""
 
 import json
+import urllib.parse
 from datetime import datetime
 
 from helpers import compare_unsorted_list
@@ -82,6 +83,27 @@ def test_get_assets_by_type_identifier(flask_cli, init_api_assets):
     expected = [
         asset for asset in init_api_assets
         if asset['type'] == 'type1' and asset['identifier'] == 'identifier1'
+    ]
+    assert compare_unsorted_list(data, expected, lambda x: x['id'])
+
+
+def test_get_assets_by_valid_at(flask_cli, init_valid_at_api_assets):
+    """Tests the API endpoint ``GET /v1/assets`` filtering by a concrete
+    ``valid_at`` time."""
+    valid_at = '2010-07-04T01:00:00+00:00'
+    valid_at_q = urllib.parse.quote_plus(valid_at)
+    valid_at_dt = datetime.fromisoformat(valid_at)
+
+    resp = flask_cli.get(f'/v1/assets?valid_at={valid_at_q}')
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+    expected = [
+        asset for asset in init_valid_at_api_assets
+        if (datetime.fromisoformat(asset['first_seen'])
+            <= valid_at_dt <=
+            datetime.fromisoformat(asset['expiration']))
     ]
     assert compare_unsorted_list(data, expected, lambda x: x['id'])
 
