@@ -1,5 +1,6 @@
 # graph_asset_inventory_api dependencies.
 Flask==2.0.0
+werkzeug==2.0.3
 connexion[swagger-ui]==2.7.0
 gunicorn==20.1.0
 gremlinpython==3.5.1

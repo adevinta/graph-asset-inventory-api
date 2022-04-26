@@ -303,6 +303,66 @@ def init_assets(g):
 
 
 @pytest.fixture
+def init_valid_at_assets(g):
+    """Creates an initial set of assets and yields a ``DbAsset`` list. They can
+    be used to test the ``InventoryClient``. This list is specially well suited
+    to test time-related queries."""
+    # (type, identifier, first_seen, last_seen, expiration)
+    assets = [
+        (
+            'type0', 'identifier0',
+            '2021-07-01T01:00:00+00:00',
+            '2021-07-07T01:00:00+00:00',
+            '2021-07-14T01:00:00+00:00',
+        ),
+        (
+            'type0', 'identifier1',
+            '2010-07-01T01:00:00+00:00',
+            '2010-07-07T01:00:00+00:00',
+            '2010-07-14T01:00:00+00:00',
+        ),
+
+        (
+            'type1', 'identifier0',
+            '2022-07-01T01:00:00+00:00',
+            '2022-07-07T01:00:00+00:00',
+            '2022-07-14T01:00:00+00:00',
+        ),
+    ]
+    # Add assets.
+    created_assets = []
+    for asset in assets:
+        asset_type = asset[0]
+        asset_identifier = asset[1]
+        first_seen = datetime.fromisoformat(asset[2])
+        last_seen = datetime.fromisoformat(asset[3])
+        expiration = datetime.fromisoformat(asset[4])
+        vasset = g.addV('Asset') \
+            .property(T.id, str(uuid.uuid4())) \
+            .property(Cardinality.single, 'type', asset_type) \
+            .property(Cardinality.single, 'identifier', asset_identifier) \
+            .property(Cardinality.single, 'first_seen', first_seen) \
+            .property(Cardinality.single, 'last_seen', last_seen) \
+            .property(Cardinality.single, 'expiration', expiration) \
+            .sideEffect(
+                __.addE("universe_of")
+                .from_(
+                    __.V()
+                    .hasLabel('Universe')
+                    .has('namespace', CURRENT_UNIVERSE.namespace)
+                    .has('version', CURRENT_UNIVERSE.version.int_version)
+                )
+            ) \
+            .elementMap() \
+            .next()
+        created_assets.append(DbAsset.from_vasset(vasset))
+
+    created_assets.sort(key=lambda x: x.vid)
+
+    yield created_assets
+
+
+@pytest.fixture
 def init_new_universe_assets(g, new_universe):
     """Creates an initial set of assets and yields a ``DbAsset`` list.  They
     can be used to test the ``InventoryClient``."""
@@ -361,6 +421,18 @@ def init_api_assets(init_assets):
     """Converts the ``DbAsset`` list created by ``init_assets`` into a list of
     dicts that can be used to test the responses of the API endpoints."""
     api_assets = [AssetResp.from_dbasset(t).__dict__ for t in init_assets]
+    yield api_assets
+
+
+@pytest.fixture
+def init_valid_at_api_assets(init_valid_at_assets):
+    """Converts the ``DbAsset`` list created by ``init_valid_at_assets`` into a
+    list of dicts that can be used to test the responses of the API
+    endpoints."""
+    api_assets = [
+        AssetResp.from_dbasset(t).__dict__
+        for t in init_valid_at_assets
+    ]
     yield api_assets
 
 

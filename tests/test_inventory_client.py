@@ -382,6 +382,25 @@ def test_assets_type_pagination(cli, init_assets):
     )
 
 
+def test_assets_valid_at(cli, init_valid_at_assets):
+    """Tests the filter ``valid_at`` param of the method ``assets`` of the
+    class ``InventoryClient``."""
+    valid_at = datetime.fromisoformat('2010-07-04T01:00:00+00:00')
+
+    expected = [
+        asset
+        for asset in init_valid_at_assets
+        if (asset.time_attr.first_seen
+            <= valid_at <=
+            asset.time_attr.expiration)
+    ]
+    assert compare_unsorted_list(
+        cli.assets(valid_at=valid_at),
+        expected,
+        lambda x: x.vid,
+    )
+
+
 def test_asset(cli, init_assets):
     """Tests the method ``asset`` of the class ``InventoryClient``."""
     asset = cli.asset(init_assets[2].vid)
