@@ -21,7 +21,7 @@ docker build \
 	--build-arg "PYTHON_IMAGE=${PYTHON_IMAGE}" \
 	--build-arg "PIP_TOOLS_VERSION=${PIP_TOOLS_VERSION}" \
 	-t "${PIP_COMPILE_IMAGE}" \
-	- < Dockerfile.pip-compile
+	- < Dockerfile-pip-compile
 
 docker run \
 	--rm \

@@ -4,7 +4,7 @@ services:
   graph-asset-inventory-api-local:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile-dev
     env_file: env/dev
     ports:
       - "127.0.0.1:8000:8000"
@@ -21,7 +21,7 @@ services:
   graph-asset-inventory-api-test:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile-dev
     env_file: env/dev
     volumes:
       - .:/app
@@ -36,7 +36,7 @@ services:
   graph-asset-inventory-api-lint:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile-dev
     volumes:
       - .:/app
     entrypoint: ["/bin/sh"]
