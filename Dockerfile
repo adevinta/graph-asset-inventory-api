@@ -1,14 +1,14 @@
 # Builder stage for getting amanzon-neptune-tools.
-FROM python:3.9.6-alpine as builder
+FROM python:3.9.12-alpine3.15 as builder
 
 RUN apk add git
 
-RUN git clone --depth 1 --branch amazon-neptune-tools-1.4 \
+RUN git clone --depth 1 --branch amazon-neptune-tools-1.7 \
 	https://github.com/awslabs/amazon-neptune-tools /amazon-neptune-tools
 
 
 # Stage for the graph-asset-inventory-api image.
-FROM python:3.9.6-alpine
+FROM python:3.9.12-alpine3.15
 
 RUN apk add gcc g++ musl-dev libffi-dev
 

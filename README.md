@@ -129,6 +129,16 @@ These are the required environment variables:
 
 The directory `/env` in this repository contains some example configurations.
 
+## Python dependencies
+
+Both direct and transitive dependencies must be pinned. In order to do that we
+use [pip-compile]. After modifying the file `requirements.in`, you must run the
+following command to update `requirements.txt`:
+
+```
+script/pip-compile requirements/requirements.in
+```
+
 ## Contributing
 
 **This project is in an early stage, we are not accepting external
@@ -137,6 +147,7 @@ contributions yet.**
 To contribute, please read the contribution guidelines in [CONTRIBUTING.md].
 
 
-[CONTRIBUTING.md]: CONTRIBUTING.md
 [flake8]: https://flake8.pycqa.org/
 [pylint]: https://pylint.pycqa.org/
+[pip-compile]: https://pypi.org/project/pip-tools/
+[CONTRIBUTING.md]: CONTRIBUTING.md
