@@ -136,7 +136,7 @@ use [pip-compile]. After modifying the file `requirements.in`, you must run the
 following command to update `requirements.txt`:
 
 ```
-script/pip-compile requirements/requirements.in
+script/pip-compile requirements.in requirements.txt
 ```
 
 ## Contributing
