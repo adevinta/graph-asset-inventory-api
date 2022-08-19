@@ -15,12 +15,10 @@ REQ_TXT=$(realpath "$2")
 cd "$(dirname $0)/.."
 
 export DOCKER_BUILDKIT=1
-
 docker build \
 	--target pip-compile \
 	-t "${PIP_COMPILE_IMAGE}" \
 	.
-
 docker run \
 	--rm \
 	-v "${REQ_IN}:/requirements.in:ro" \
