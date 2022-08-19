@@ -41,8 +41,8 @@ services:
       - .:/app
     entrypoint: ["/bin/sh"]
     command: ["-c", " \
-      echo 'Running flake8...' && flake8 ${LINTER_PATHS} && \
-      echo 'Running pylint...' && pylint ${LINTER_PATHS} \
+      echo 'Running flake8...' && flake8 ${LINTER_PATHS:-} && \
+      echo 'Running pylint...' && pylint ${LINTER_PATHS:-} \
     "]
 
   graph-notebook-local:
