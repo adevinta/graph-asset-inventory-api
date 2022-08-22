@@ -132,11 +132,11 @@ The directory `/env` in this repository contains some example configurations.
 ## Python dependencies
 
 Both direct and transitive dependencies must be pinned. In order to do that we
-use [pip-compile]. After modifying the file `requirements.in`, you must run the
-following command to update `requirements.txt`:
+use [pip-compile]. After modifying a `requirements.in` file, you must run the
+following command to update the corresponding `requirements.txt` file:
 
 ```
-script/pip-compile requirements.in requirements.txt
+script/pip-compile <requirements.in> <requirements.txt>
 ```
 
 ## Contributing
