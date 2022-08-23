@@ -1,17 +1,14 @@
 #!/bin/bash
 
-# Exit on error and undefined variable.
 set -e -u
 
 # Set working directory to the root of the repo.
 cd "$(dirname $0)/.."
 
-# Set defaults.
 export PYTEST_FLAGS=$@
-
 echo "pytest flags: '${PYTEST_FLAGS}'"
 
-# Run the docker-compose test environment.
+export DOCKER_BUILDKIT=1
 DOCKER_COMPOSE_PROJECT='graph-asset-inventory-api-test'
 docker-compose -p "${DOCKER_COMPOSE_PROJECT}" build graph-asset-inventory-api-test
 docker-compose -p "${DOCKER_COMPOSE_PROJECT}" run graph-asset-inventory-api-test

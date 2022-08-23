@@ -13,9 +13,10 @@ if [[ $# -ne 2 ]]; then
     echo "usage: $0 <local_tag> <push_tag>" >&2
     exit 2
 fi
-
 LOCAL_TAG=$1
 PUSH_TAG=$2
+
+export DOCKER_BUILDKIT=1
 
 docker tag "${LOCAL_TAG}" "${PUSH_TAG}"
 echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin

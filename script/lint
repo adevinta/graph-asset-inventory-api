@@ -1,17 +1,14 @@
 #!/bin/bash
 
-# Exit on error and undefined variable.
 set -e -u
 
 # Set working directory to the root of the repo.
 cd "$(dirname $0)/.."
 
-# Set defaults.
 export LINTER_PATHS=${@:-'graph_asset_inventory_api tests benches'}
+echo "linter paths: '${LINTER_PATHS}'"
 
-echo "Linter paths: '${LINTER_PATHS}'"
-
-# Run the docker-compose lint environment.
+export DOCKER_BUILDKIT=1
 DOCKER_COMPOSE_PROJECT='graph-asset-inventory-api-lint'
 docker-compose -p "${DOCKER_COMPOSE_PROJECT}" build graph-asset-inventory-api-lint
 docker-compose -p "${DOCKER_COMPOSE_PROJECT}" run graph-asset-inventory-api-lint
