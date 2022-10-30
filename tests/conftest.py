@@ -535,6 +535,103 @@ def init_api_parents(init_parents):
     yield api_parents
 
 
+@pytest.fixture
+def init_children(g, init_assets):
+    """Creates an initial set of ``parent_of`` edges and yields a dict of the
+    form ``{vid0: [DbParentOf], vid1: [DbParentOf]}``.  They can be used to
+    test the ``InventoryClient``."""
+    edges = {
+        # parent_idx: [(child_idx, first_seen, last_seen, expiration)]
+        0: [
+            (
+                2,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                3,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                4,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                5,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+        ],
+        1: [
+            (
+                6,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                7,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+            (
+                8,
+                '2021-07-01T01:00:00+00:00',
+                '2021-07-07T01:00:00+00:00',
+                '2021-07-14T01:00:00+00:00',
+            ),
+        ],
+        2: [],
+    }
+
+    # Add ``parent_of`` edges.
+    dbchildren = {}
+    for parent_idx, children in edges.items():
+        parent_vid = init_assets[parent_idx].vid
+        dbchildren[parent_vid] = []
+        for child in children:
+            child_vid = init_assets[child[0]].vid
+            first_seen = datetime.fromisoformat(child[1])
+            last_seen = datetime.fromisoformat(child[2])
+            expiration = datetime.fromisoformat(child[3])
+
+            eparentof = g \
+                .V(parent_vid).addE('parent_of').to(__.V(child_vid)) \
+                .property(T.id, str(uuid.uuid4())) \
+                .property('first_seen', first_seen) \
+                .property('last_seen', last_seen) \
+                .property('expiration', expiration) \
+                .elementMap() \
+                .next()
+
+            dbchildren[parent_vid].append(DbParentOf.from_eparentof(eparentof))
+
+        dbchildren[parent_vid].sort(key=lambda x: x.eid)
+
+    yield dbchildren
+
+
+@pytest.fixture
+def init_api_children(init_children):
+    """Converts the ``DbParentOf`` lists created by ``init_children`` into
+    lists of dicts that can be used to test the responses of the API
+    endpoints."""
+    api_children = {}
+    for k, v in init_children.items():
+        api_children[k] = [
+            ParentOfResp.from_dbparentof(po).__dict__ for po in v
+        ]
+
+    yield api_children
+
+
 # Owners.
 
 

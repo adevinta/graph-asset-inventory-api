@@ -956,6 +956,13 @@ def test_drop_parent_of_not_found_error(cli, unknown_uuid):
     assert exc_info.value.name == unknown_uuid
 
 
+def test_children(cli, init_children):
+    """Tests the method ``children`` of the class ``InventoryClient`."""
+    for vid, children in init_children.items():
+        assert compare_unsorted_list(
+            cli.children(vid), children, lambda x: x.eid)
+
+
 # Owners.
 
 

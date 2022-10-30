@@ -274,7 +274,7 @@ paths:
 
     get:
       operationId: graph_asset_inventory_api.api.parents.get_assets_id_parents
-      summary: Returns the list of child-of relationships of an asset.
+      summary: Returns the list of parent-of relationships of an asset.
       tags:
         - Assets
         - Parents
@@ -351,7 +351,7 @@ paths:
 
     delete:
       operationId: graph_asset_inventory_api.api.parents.delete_assets_child_id_parents_parent_id
-      summary: Deletes a child-of relationship.
+      summary: Deletes a parent-of relationship.
       tags:
         - Assets
         - Parents
@@ -361,6 +361,48 @@ paths:
           description: The relationship has been deleted successfully.
         '404':
           description: At least one of the assets or the relationship were not found.
+
+  /v1/assets/{id}/children:
+    parameters:
+      - in: path
+        name: id
+        description: ID of the asset.
+        schema:
+          type: string
+          format: uuid
+        required: true
+
+    get:
+      operationId: graph_asset_inventory_api.api.parents.get_assets_id_children
+      summary: Returns the list of outgoing parent-of relationships of an asset.
+      tags:
+        - Assets
+        - Parents
+        - v1
+      parameters:
+        - in: query
+          name: page
+          description: Index of the page.
+          schema:
+            type: integer
+          required: false
+        - in: query
+          name: size
+          description: Number of results per page.
+          schema:
+            type: integer
+          required: false
+      responses:
+        '200':
+          description: A JSON array of relationships.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ParentOfResp'
+        '404':
+          description: The asset was not found.
 
   /v1/assets/{id}/owners:
     parameters:

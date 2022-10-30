@@ -229,3 +229,15 @@ def test_delete_assets_id_not_found_error(flask_cli, init_api_parents):
         init_api_parents[child],
         lambda x: x['id'],
     )
+
+
+def test_get_assets_id_children(flask_cli, init_api_children):
+    """Tests the API endpoint ``GET /v1/assets/{id}/children``."""
+
+    for parent_id, children in init_api_children.items():
+        resp = flask_cli.get(f'/v1/assets/{parent_id}/children')
+
+        assert resp.status_code == 200
+
+        data = json.loads(resp.data)
+        assert compare_unsorted_list(data, children, lambda x: x['id'])

@@ -494,7 +494,7 @@ class InventoryTraversalSource(GraphTraversalSource):
         return self.E(eid).is_parent_of()
 
     def parents(self, asset_vid):
-        """Returns the incoming ``parent_of`` edges of the Asset vertex with ID
+        """Returns the ingoing ``parent_of`` edges of the Asset vertex with ID
         ``vid``."""
         return self \
             .asset(asset_vid) \
@@ -553,6 +553,14 @@ class InventoryTraversalSource(GraphTraversalSource):
             .sideEffect(__.drop()) \
             .count()
 
+    def children(self, asset_vid):
+        """Returns the outgoing ``parent_of`` edges of the Asset vertex with ID
+        ``vid``."""
+        return self \
+            .asset(asset_vid) \
+            .outE() \
+            .is_parent_of()
+
     # Owners.
 
     def owns(self, eid):
@@ -560,7 +568,7 @@ class InventoryTraversalSource(GraphTraversalSource):
         return self.E(eid).is_owns()
 
     def owners(self, asset_vid):
-        """Returns the incoming ``owns`` edges of the Asset vertex with ID
+        """Returns the ingoing ``owns`` edges of the Asset vertex with ID
         ``vid``."""
         return self \
             .asset(asset_vid) \
