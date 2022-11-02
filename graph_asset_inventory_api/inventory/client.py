@@ -453,6 +453,38 @@ class InventoryClient:
         if nparentofs > 1:
             raise InconsistentStateError('duplicated edge')
 
+    def children(self, asset_vid, page_idx=None, page_size=100):
+        """Returns the list of (outgoing) ``DbParentOf`` of the asset with
+        vertex ID ``asset_vid``. If the asset does not exist, a
+        ``NotFoundError`` exception is raised. If ``page_idx`` is None, all the
+        relationships are returned.  Otherwise it returns the page of
+        relationships with index ``page_idx`` and size ``page_size``. By
+        default, the page size is 100 items."""
+        vassets = self._g \
+            .asset(asset_vid) \
+            .toList()
+
+        if len(vassets) == 0:
+            raise NotFoundError(asset_vid)
+        if len(vassets) > 1:
+            raise InconsistentStateError('duplicated asset')
+
+        echildren = self._g.children(asset_vid)
+
+        if page_idx is not None:
+            offset = page_idx * page_size
+            echildren = echildren \
+                .order() \
+                .by(T.id, Order.asc) \
+                .range(offset, offset + page_size)
+
+        echildren = echildren \
+            .elementMap() \
+            .toList()
+
+        dbchildren = [DbParentOf.from_eparentof(epo) for epo in echildren]
+        return dbchildren
+
     # Owners.
 
     def owners(self, asset_vid, page_idx=None, page_size=100):

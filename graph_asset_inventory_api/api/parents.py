@@ -68,3 +68,19 @@ def delete_assets_child_id_parents_parent_id(child_id, parent_id):
 
     return connexion.problem(
         404, 'Not Found', f'parent not found: {parent_id}')
+
+
+# pylint: disable=redefined-builtin
+def get_assets_id_children(id, page=None, size=100):
+    """Request handler for the API endpoint ``GET
+    /v1/assets/{id}/children``."""
+    cli = get_inventory_client()
+
+    children = None
+    try:
+        children = cli.children(id, page, size)
+    except NotFoundError:
+        return connexion.problem(404, 'Not Found', 'ID not found')
+
+    resp = [ParentOfResp.from_dbparentof(po).__dict__ for po in children]
+    return resp, 200
