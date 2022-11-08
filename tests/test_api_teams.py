@@ -1,6 +1,7 @@
 """Tests for the Asset Inventory API."""
 
 import json
+import urllib.parse
 
 from helpers import compare_unsorted_list
 
@@ -249,3 +250,42 @@ def test_put_teams_identifier_not_found_error(flask_cli, init_api_teams):
         init_api_teams,
         lambda x: x['id'],
     )
+
+
+def test_get_teams_encoding(flask_cli):
+    """Tests the API endpoint ``GET /v1/teams`` when the query string is URL
+    encoded."""
+
+    team_req = TeamReq(
+        'http://example.com/aaa?x=x&team_identifier=bbb',
+        'http://example.com/ccc?x=x&team_identifier=ddd',
+    )
+
+    resp = flask_cli.post(
+        '/v1/teams',
+        data=json.dumps(team_req.__dict__),
+        content_type='application/json',
+    )
+
+    assert resp.status_code == 201
+
+    # Non-urlencoded query string.
+    resp = flask_cli.get(f'/v1/teams?team_identifier={team_req.identifier}')
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+
+    assert len(data) == 0
+
+    # Urlencoded query string.
+    identifier_q = urllib.parse.quote_plus(team_req.identifier)
+    resp = flask_cli.get(f'/v1/teams?team_identifier={identifier_q}')
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+
+    assert len(data) == 1
+    assert data[0]['identifier'] == team_req.identifier
+    assert data[0]['name'] == team_req.name
