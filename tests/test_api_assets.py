@@ -336,3 +336,53 @@ def test_put_assets_asset_id_not_found_error(flask_cli, init_api_assets):
         init_api_assets,
         lambda x: x['id'],
     )
+
+
+def test_get_assets_encoding(flask_cli):
+    """Tests the API endpoint ``GET /v1/assets`` when the query string is URL
+    encoded."""
+
+    asset_id = AssetID(
+        'http://example.com/aaa?x=x&asset_type=bbb&asset_identifier=ccc',
+        'http://example.com/ddd?x=x&asset_type=eee&asset_identifier=fff',
+    )
+
+    timestamp = datetime.fromisoformat('2021-07-01T01:00:00+00:00')
+    expiration = datetime.fromisoformat('2021-07-07T01:00:00+00:00')
+
+    asset_req = AssetReq(asset_id, timestamp, expiration)
+
+    resp = flask_cli.post(
+        '/v1/assets',
+        data=json.dumps(asset_req.__dict__),
+        content_type='application/json',
+    )
+
+    assert resp.status_code == 201
+
+    # Non-urlencoded query string.
+    resp = flask_cli.get(
+        f'/v1/assets'
+        f'?asset_type={asset_id.type}&asset_identifier={asset_id.identifier}'
+    )
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+
+    assert len(data) == 0
+
+    # Urlencoded query string.
+    type_q = urllib.parse.quote_plus(asset_id.type)
+    identifier_q = urllib.parse.quote_plus(asset_id.identifier)
+    resp = flask_cli.get(
+        f'/v1/assets?asset_type={type_q}&asset_identifier={identifier_q}'
+    )
+
+    assert resp.status_code == 200
+
+    data = json.loads(resp.data)
+
+    assert len(data) == 1
+    assert data[0]['type'] == asset_id.type
+    assert data[0]['identifier'] == asset_id.identifier
